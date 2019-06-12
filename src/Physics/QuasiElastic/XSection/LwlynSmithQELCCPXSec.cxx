@@ -4,8 +4,11 @@
  For the full text of the license visit http://copyright.genie-mc.org
  or see $GENIE/LICENSE
 
- Author: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-         University of Liverpool & STFC Rutherford Appleton Lab
+ Authors: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
+          University of Liverpool & STFC Rutherford Appleton Lab
+
+          Afroditi Papadopoulou <apapadop \at mit.edu>                          
+          Massachusetts Institute of Technology
 
  For the class documentation see the corresponding header file.
 
@@ -46,6 +49,10 @@
 #include "Physics/NuclearState/NuclearUtils.h"
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
 
+// apapadop -> Necessary header files to call the Elastic FF                    
+#include "Physics/QuasiElastic/XSection/ELFormFactorsModelI.h"
+#include "Physics/QuasiElastic/XSection/TransverseEnhancementFFModel.h"
+
 using namespace genie;
 using namespace genie::constants;
 using namespace genie::utils;
@@ -84,39 +91,72 @@ double LwlynSmithQELCCPXSec::XSec(
   // Get kinematics & init-state parameters
   const Kinematics &   kinematics = interaction -> Kine();
   const InitialState & init_state = interaction -> InitState();
+  // apapadop
+  const ProcessInfo &  proc_info  = interaction->ProcInfo();
+  bool is_EM = proc_info.IsEM();
   const Target & target = init_state.Tgt();
+  // apapadop
+  int nucpdgc = target.HitNucPdg();
 
   double E  = init_state.ProbeE(kRfHitNucRest);
   double E2 = TMath::Power(E,2);
   double ml = interaction->FSPrimLepton()->Mass();
   double M  = target.HitNucMass();
+  // apapadop
+  double M2 = TMath::Power(M,2.);
   double q2 = kinematics.q2();
+  // apapadop
+  double g2 = kGF2;
 
   // One of the xsec terms changes sign for antineutrinos
   bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
   int sign = (is_neutrino) ? -1 : 1;
 
-  // Calculate the QEL form factors
-  fFormFactors.Calculate(interaction);
+  double F1V   = 0.;
+  double xiF2V = 0.;
+  double FA    = 0.;
+  double Fp    = 0.;
 
-  double F1V   = fFormFactors.F1V();
-  double xiF2V = fFormFactors.xiF2V();
-  double FA    = fFormFactors.FA();
-  double Fp    = fFormFactors.Fp();
+  // apapadop
+  if (is_EM) {
 
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-  LOG("LwlynSmith", pDEBUG) << "\n" << fFormFactors;
-#endif
+	// Coupling constant for EM interactions                                                                                                               
+	// due to the difference in the mass of the propagator                                                                                                 
+
+	double q4 = q2*q2;
+	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4 * fCos8c2); // Don't forget to divide by fCos8c2                                                               
+							    // EM interactions don't change the quark flavor                                                   
+
+	// Calculating the corresponding Elastic FF for electron scattering                                                                                                               
+
+	fELFF.Calculate(interaction);
+	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
+	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
+
+	F1V   = 1./(1-q2/(4*M2)) * ( Ge - q2/(4*M2)*Gm );
+	xiF2V = 1./(1-q2/(4*M2)) * ( Gm - Ge );
+
+  } else {
+
+	// Calculate the QEL form factors for neutrino scattering 
+
+	fFormFactors.Calculate(interaction);
+	F1V   = fFormFactors.F1V();
+	xiF2V = fFormFactors.xiF2V();
+	FA    = fFormFactors.FA();
+	Fp    = fFormFactors.Fp();
+
+  }
 
   // Calculate auxiliary parameters
   double ml2     = TMath::Power(ml,    2);
-  double M2      = TMath::Power(M,     2);
   double M4      = TMath::Power(M2,    2);
   double FA2     = TMath::Power(FA,    2);
   double Fp2     = TMath::Power(Fp,    2);
   double F1V2    = TMath::Power(F1V,   2);
   double xiF2V2  = TMath::Power(xiF2V, 2);
-  double Gfactor = M2*kGF2*fCos8c2 / (8*kPi*E2);
+  // apapadop
+  double Gfactor = M2*g2*fCos8c2 / (8*kPi*E2);
   double s_u     = 4*E*M + q2 - ml2;
   double q2_M2   = q2/M2;
 
@@ -161,7 +201,6 @@ double LwlynSmithQELCCPXSec::XSec(
   double R = nuclear::NuclQELXSecSuppression("Default", 0.5, interaction);
 
   //----- number of scattering centers in the target
-  int nucpdgc = target.HitNucPdg();
   int NNucl = (pdg::IsProton(nucpdgc)) ? target.Z() : target.N();
 
 #ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
@@ -248,20 +287,52 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   // using the de Forest prescription (Q2tilde instead of Q2).
   interaction->KinePtr()->SetQ2(Q2tilde);
 
-  // Calculate the QEL form factors
-  fFormFactors.Calculate(interaction);
+  double F1V   = 0.;
+  double xiF2V = 0.;
+  double FA    = 0.;
+  double Fp    = 0.;
 
-  double F1V   = fFormFactors.F1V();
-  double xiF2V = fFormFactors.xiF2V();
-  double FA    = fFormFactors.FA();
-  double Fp    = fFormFactors.Fp();
+  // apapadop
+
+  int nucpdgc = tgt.HitNucPdg();
+  const ProcessInfo &  proc_info  = interaction->ProcInfo();
+  bool is_EM     = proc_info.IsEM();
+  double g2 = kGF2;
+  double q2 = kinematics.q2();
+  double M  = tgt.HitNucMass();
+  double M2 = TMath::Power(M,2.);
+
+  if (is_EM) {
+  
+	double q4 = q2*q2;
+	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4 * fCos8c2);
+
+	// Calculating the corresponding Elastic FF                                                                                                                
+
+	fELFF.Calculate(interaction);
+	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
+	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
+	F1V   = 1./(1-q2/(4*M2))*( Ge - q2/(4*M2)*Gm );
+	xiF2V = 1./(1-q2/(4*M2))*( Gm - Ge );
+
+  } else {
+
+	fFormFactors.Calculate(interaction);
+	F1V = fFormFactors.F1V();
+	xiF2V = fFormFactors.xiF2V();
+	FA = fFormFactors.FA();
+	Fp = fFormFactors.Fp();
+  }
+
+
 
   // Restore Q2 in the interaction's kinematic variables
   // now that the form factors have been computed
   interaction->KinePtr()->SetQ2( Q2 );
 
   // Overall factor in the differential cross section
-  double Gfactor = kGF2*fCos8c2 / ( 8. * kPi * kPi * inNucleonOnShellEnergy
+  // apapadop
+  double Gfactor = g2*fCos8c2 / ( 8. * kPi * kPi * inNucleonOnShellEnergy
     * neutrinoMom.E() * outNucleonMom.E() * leptonMom.E() );
 
   // Now, we can calculate the cross section
@@ -292,9 +363,7 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   xsec *= fXSecScale;
 
   // Number of scattering centers in the target
-  const Target & target = init_state.Tgt();
-  int nucpdgc = target.HitNucPdg();
-  int NNucl = (pdg::IsProton(nucpdgc)) ? target.Z() : target.N();
+  int NNucl = (pdg::IsProton(nucpdgc)) ? tgt.Z() : tgt.N();
 
 #ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
   LOG("LwlynSmith", pDEBUG)
@@ -406,7 +475,9 @@ bool LwlynSmithQELCCPXSec::ValidProcess(const Interaction * interaction) const
   bool isnu  = pdg::IsNeutrino(nu);
   bool isnub = pdg::IsAntiNeutrino(nu);
 
-  bool prcok = proc_info.IsWeakCC() && ((isP&&isnub) || (isN&&isnu));
+  //apapadop: add the case where we have EM interactions                                                                                                         
+  bool ise = pdg::IsElectron(nu);
+  bool prcok = ( proc_info.IsWeakCC() && ((isP&&isnub) || (isN&&isnu)) ) || ( proc_info.IsEM() && (ise) );
   if(!prcok) return false;
 
   return true;
@@ -432,6 +503,27 @@ void LwlynSmithQELCCPXSec::LoadConfig(void)
   double thc ;
   GetParam( "CabibboAngle", thc ) ;
   fCos8c2 = TMath::Power(TMath::Cos(thc), 2);
+
+  //apapadop                                                                                                                                                     
+  double thw ;
+  GetParam( "WeinbergAngle", thw ) ;
+  fSin48w = TMath::Power( TMath::Sin(thw), 4 );
+
+  // load elastic form factors model                                                                                                                            
+  fElFFModel = dynamic_cast<const ELFormFactorsModelI *> ( this -> SubAlg("ElasticFormFactorsModel" ) ) ;
+
+  assert(fElFFModel);
+
+  fCleanUpfElFFModel = false;
+  bool useFFTE = false ;
+  GetParam( "UseElFFTransverseEnhancement", useFFTE ) ;
+  if( useFFTE ) {
+        const ELFormFactorsModelI* sub_alg = fElFFModel;
+        fElFFModel = dynamic_cast<const ELFormFactorsModelI *> ( this -> SubAlg("TransverseEnhancement") ) ;
+        dynamic_cast<const TransverseEnhancementFFModel*>(fElFFModel)->SetElFFBaseModel( sub_alg );
+        fCleanUpfElFFModel = true;
+  }
+  fELFF.SetModel(fElFFModel);
 
    // load QEL form factors model
   fFormFactorsModel = dynamic_cast<const QELFormFactorsModelI *> (

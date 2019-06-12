@@ -9,8 +9,11 @@
 \ref      C.H.Llewellyn Smith, Physics Reports (Sect. C of Physics Letters) 3,
           No. 5  (1972) 261-379
 
-\author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+\authors   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
+           University of Liverpool & STFC Rutherford Appleton Lab
+
+           Afroditi Papadopoulou <apapadop \at mit.edu>                          
+           Massachusetts Institute of Technology
 
 \created  May 05, 2004
 
@@ -28,6 +31,9 @@
 #include "Physics/QuasiElastic/XSection/QELFormFactors.h"
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
 #include "Physics/NuclearState/PauliBlocker.h"
+
+//apapadop                                                                      
+#include "Physics/QuasiElastic/XSection/ELFormFactors.h"
 
 namespace genie {
 
@@ -78,6 +84,12 @@ private:
   bool fDoPauliBlocking;
   /// The PauliBlocker instance to use to apply that correction
   const genie::PauliBlocker* fPauliBlocker;
+
+  //apapadop                                                                      
+  double fSin48w;
+  const   ELFormFactorsModelI * fElFFModel;
+  mutable ELFormFactors         fELFF;
+  bool fCleanUpfElFFModel;
 };
 
 }       // genie namespace
