@@ -308,7 +308,6 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   bool is_EM     = proc_info.IsEM();
   double g2 = kGF2;
   double q2 = kinematics.q2();
-std::cout << "FullDifferentialXSec q2 = " << q2 << "  Q2tilde = " << Q2tilde << "  Q2 = " << Q2 << std::endl;
   double M  = tgt.HitNucMass();
   double M2 = TMath::Power(M,2.);
 
