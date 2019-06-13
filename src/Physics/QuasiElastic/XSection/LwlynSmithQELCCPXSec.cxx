@@ -107,6 +107,8 @@ double LwlynSmithQELCCPXSec::XSec(
   double q2 = kinematics.q2();
   // apapadop
   double g2 = kGF2;
+  double tau     = -q2/(4*M2);
+double localxsecRosen = -99.;
 
   // One of the xsec terms changes sign for antineutrinos
   bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
@@ -124,17 +126,19 @@ double LwlynSmithQELCCPXSec::XSec(
 	// due to the difference in the mass of the propagator                                                                                                 
 
 	double q4 = q2*q2;
-	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4 * fCos8c2); // Don't forget to divide by fCos8c2                                                               
-							    // EM interactions don't change the quark flavor                                                   
+	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4)) ; // Factor of kPi / 4. needed due to different normalization conventions
 
-	// Calculating the corresponding Elastic FF for electron scattering                                                                                                               
+	// Calculating the corresponding Elastic FF for electron scattering                                                                                           
 
 	fELFF.Calculate(interaction);
-	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
-	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
 
-	F1V   = 1./(1-q2/(4*M2)) * ( Ge - q2/(4*M2)*Gm );
-	xiF2V = 1./(1-q2/(4*M2)) * ( Gm - Ge );
+	double GmV  = fELFF.Gmp() - fELFF.Gmn();
+	double GeV  = fELFF.Gep() - fELFF.Gen();
+
+	double localtau = -q2/(4*M2);
+
+	F1V   = 1./(1 + localtau) * ( GeV + localtau * GmV );
+	xiF2V = 1./(1 + localtau) * ( GmV - GeV );
 
   } else {
 
@@ -168,6 +172,7 @@ double LwlynSmithQELCCPXSec::XSec(
   double B = -1 * q2_M2 * FA*(F1V+xiF2V);
   double C = 0.25*(FA2 + F1V2 - 0.25*q2_M2*xiF2V2);
 
+
   double xsec = Gfactor * (A + sign*B*s_u/M2 + C*s_u*s_u/M4);
 
   // Apply given scaling factor
@@ -183,6 +188,10 @@ double LwlynSmithQELCCPXSec::XSec(
   //----- The algorithm computes dxsec/dQ2
   //      Check whether variable tranformation is needed
   if(kps!=kPSQ2fE) {
+
+//apapadop
+std::cout << "multiplication by J" << std::endl;
+
     double J = utils::kinematics::Jacobian(interaction,kPSQ2fE,kps);
 
 #ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
@@ -299,21 +308,29 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   bool is_EM     = proc_info.IsEM();
   double g2 = kGF2;
   double q2 = kinematics.q2();
+std::cout << "FullDifferentialXSec q2 = " << q2 << "  Q2tilde = " << Q2tilde << "  Q2 = " << Q2 << std::endl;
   double M  = tgt.HitNucMass();
   double M2 = TMath::Power(M,2.);
 
   if (is_EM) {
   
 	double q4 = q2*q2;
-	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4 * fCos8c2);
+	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
 
 	// Calculating the corresponding Elastic FF                                                                                                                
 
+// save it but most likely wrong
+//	fELFF.Calculate(interaction);
+//	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
+//	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
+//	F1V   = 1./(1-q2/(4*M2))*( Ge - q2/(4*M2)*Gm );
+//	xiF2V = 1./(1-q2/(4*M2))*( Gm - Ge );
+
 	fELFF.Calculate(interaction);
-	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
-	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
-	F1V   = 1./(1-q2/(4*M2))*( Ge - q2/(4*M2)*Gm );
-	xiF2V = 1./(1-q2/(4*M2))*( Gm - Ge );
+	double GmV  = fELFF.Gmp() - fELFF.Gmn();
+	double GeV  = fELFF.Gep() - fELFF.Gen();
+	F1V   = 1./(1-q2/(4*M2))*( GeV - q2/(4*M2)*GmV );
+	xiF2V = 1./(1-q2/(4*M2))*( GmV - GeV );
 
   } else {
 
