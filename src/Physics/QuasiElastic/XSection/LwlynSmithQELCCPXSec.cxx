@@ -314,16 +314,9 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   if (is_EM) {
   
 	double q4 = q2*q2;
-	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
+	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
 
 	// Calculating the corresponding Elastic FF                                                                                                                
-
-// save it but most likely wrong
-//	fELFF.Calculate(interaction);
-//	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
-//	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
-//	F1V   = 1./(1-q2/(4*M2))*( Ge - q2/(4*M2)*Gm );
-//	xiF2V = 1./(1-q2/(4*M2))*( Gm - Ge );
 
 	fELFF.Calculate(interaction);
 	double GmV  = fELFF.Gmp() - fELFF.Gmn();
