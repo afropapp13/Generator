@@ -107,7 +107,7 @@ double LwlynSmithQELCCPXSec::XSec(
   double q2 = kinematics.q2();
   // apapadop
   double g2 = kGF2;
-  double tau     = -q2/(4*M2);
+  double tau = -q2/(4*M2);
 
   // One of the xsec terms changes sign for antineutrinos
   bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
@@ -309,10 +309,11 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
 
 // apapadop  
 // still debating what the right expression is
-//	double q4 = q2*q2;
-	double q4 = Q2*Q2;
+	double q4 = q2*q2;
+//	double q4 = Q2*Q2;
 
-	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
+//	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
+	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
 
 	// Calculating the corresponding Elastic FF                                                                                                                
 
