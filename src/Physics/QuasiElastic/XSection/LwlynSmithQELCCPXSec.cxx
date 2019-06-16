@@ -108,7 +108,6 @@ double LwlynSmithQELCCPXSec::XSec(
   // apapadop
   double g2 = kGF2;
   double tau     = -q2/(4*M2);
-double localxsecRosen = -99.;
 
   // One of the xsec terms changes sign for antineutrinos
   bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
@@ -126,7 +125,7 @@ double localxsecRosen = -99.;
 	// due to the difference in the mass of the propagator                                                                                                 
 
 	double q4 = q2*q2;
-	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4)) ; // Factor of kPi / 4. needed due to different normalization conventions
+	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4)) ; // Factor of kPi / 4. needed due to different coupling
 
 	// Calculating the corresponding Elastic FF for electron scattering                                                                                           
 
@@ -135,10 +134,8 @@ double localxsecRosen = -99.;
 	double GmV  = fELFF.Gmp() - fELFF.Gmn();
 	double GeV  = fELFF.Gep() - fELFF.Gen();
 
-	double localtau = -q2/(4*M2);
-
-	F1V   = 1./(1 + localtau) * ( GeV + localtau * GmV );
-	xiF2V = 1./(1 + localtau) * ( GmV - GeV );
+	F1V   = 1./(1 + tau) * ( GeV + tau * GmV );
+	xiF2V = 1./(1 + tau) * ( GmV - GeV );
 
   } else {
 
@@ -188,9 +185,6 @@ double localxsecRosen = -99.;
   //----- The algorithm computes dxsec/dQ2
   //      Check whether variable tranformation is needed
   if(kps!=kPSQ2fE) {
-
-//apapadop
-std::cout << "multiplication by J" << std::endl;
 
     double J = utils::kinematics::Jacobian(interaction,kPSQ2fE,kps);
 
@@ -312,21 +306,28 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   double M2 = TMath::Power(M,2.);
 
   if (is_EM) {
-  
-	double q4 = q2*q2;
+
+// apapadop  
+// still debating what the right expression is
+//	double q4 = q2*q2;
+	double q4 = Q2*Q2;
+
 	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
 
 	// Calculating the corresponding Elastic FF                                                                                                                
 
 	fELFF.Calculate(interaction);
+
 	double GmV  = fELFF.Gmp() - fELFF.Gmn();
 	double GeV  = fELFF.Gep() - fELFF.Gen();
+
 	F1V   = 1./(1-q2/(4*M2))*( GeV - q2/(4*M2)*GmV );
 	xiF2V = 1./(1-q2/(4*M2))*( GmV - GeV );
 
   } else {
 
 	fFormFactors.Calculate(interaction);
+
 	F1V = fFormFactors.F1V();
 	xiF2V = fFormFactors.xiF2V();
 	FA = fFormFactors.FA();
