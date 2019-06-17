@@ -307,13 +307,10 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
 
   if (is_EM) {
 
-// apapadop  
-// still debating what the right expression is
+	// apapadop  
 	double q4 = q2*q2;
-//	double q4 = Q2*Q2;
 
-//	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
-	g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
+	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
 
 	// Calculating the corresponding Elastic FF                                                                                                                
 
