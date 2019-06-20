@@ -91,21 +91,17 @@ double LwlynSmithQELCCPXSec::XSec(
   // Get kinematics & init-state parameters
   const Kinematics &   kinematics = interaction -> Kine();
   const InitialState & init_state = interaction -> InitState();
-  // apapadop
   const ProcessInfo &  proc_info  = interaction->ProcInfo();
   bool is_EM = proc_info.IsEM();
   const Target & target = init_state.Tgt();
-  // apapadop
   int nucpdgc = target.HitNucPdg();
 
   double E  = init_state.ProbeE(kRfHitNucRest);
   double E2 = TMath::Power(E,2);
   double ml = interaction->FSPrimLepton()->Mass();
   double M  = target.HitNucMass();
-  // apapadop
   double M2 = TMath::Power(M,2.);
   double q2 = kinematics.q2();
-  // apapadop
   double g2 = kGF2;
   double tau = -q2/(4*M2);
 
@@ -118,7 +114,6 @@ double LwlynSmithQELCCPXSec::XSec(
   double FA    = 0.;
   double Fp    = 0.;
 
-  // apapadop
   if (is_EM) {
 
 	// Coupling constant for EM interactions                                                                                                               
@@ -156,7 +151,6 @@ double LwlynSmithQELCCPXSec::XSec(
   double Fp2     = TMath::Power(Fp,    2);
   double F1V2    = TMath::Power(F1V,   2);
   double xiF2V2  = TMath::Power(xiF2V, 2);
-  // apapadop
   double Gfactor = M2*g2*fCos8c2 / (8*kPi*E2);
   double s_u     = 4*E*M + q2 - ml2;
   double q2_M2   = q2/M2;
@@ -295,8 +289,6 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   double FA    = 0.;
   double Fp    = 0.;
 
-  // apapadop
-
   int nucpdgc = tgt.HitNucPdg();
   const ProcessInfo &  proc_info  = interaction->ProcInfo();
   bool is_EM     = proc_info.IsEM();
@@ -305,22 +297,22 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   double M  = tgt.HitNucMass();
   double M2 = TMath::Power(M,2.);
 
+double localxsec = 0;
+
   if (is_EM) {
 
-	// apapadop  
-	double q4 = q2*q2;
-
+	double q4 = Q2*Q2;
 	g2 = kPi/4.* (kAem2 * kPi2 / (2.0 * fSin48w * q4));
 
 	// Calculating the corresponding Elastic FF                                                                                                                
 
 	fELFF.Calculate(interaction);
 
-	double GmV  = fELFF.Gmp() - fELFF.Gmn();
-	double GeV  = fELFF.Gep() - fELFF.Gen();
+	double Gm  = pdg::IsProton(nucpdgc) ? fELFF.Gmp() : fELFF.Gmn();
+	double Ge  = pdg::IsProton(nucpdgc) ? fELFF.Gep() : fELFF.Gen();
 
-	F1V   = 1./(1-q2/(4*M2))*( GeV - q2/(4*M2)*GmV );
-	xiF2V = 1./(1-q2/(4*M2))*( GmV - GeV );
+	F1V   = 1./(1-q2/(4*M2))*( Ge - q2/(4*M2)*Gm );
+	xiF2V = 1./(1-q2/(4*M2))*( Gm - Ge );
 
   } else {
 
@@ -339,7 +331,6 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   interaction->KinePtr()->SetQ2( Q2 );
 
   // Overall factor in the differential cross section
-  // apapadop
   double Gfactor = g2*fCos8c2 / ( 8. * kPi * kPi * inNucleonOnShellEnergy
     * neutrinoMom.E() * outNucleonMom.E() * leptonMom.E() );
 
@@ -350,16 +341,38 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
   double h3 = 2.0 * FA * (F1V + xiF2V);
   double h4 = 0.25 * xiF2V*xiF2V *(1-tau) + 0.5*F1V*xiF2V + FA*Fp - tau*Fp*Fp;
 
-  bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
-  int sign = (is_neutrino) ? -1 : 1;
-  double l1 = 2*neutrinoMom.Dot(leptonMom)*std::pow(mNucleon, 2);
-  double l2 = 2*(neutrinoMom.Dot(inNucleonMomOnShell)) * (inNucleonMomOnShell.Dot(leptonMom)) - neutrinoMom.Dot(leptonMom)*std::pow(mNucleon, 2);
-  double l3 = (neutrinoMom.Dot(inNucleonMomOnShell) * qTildeP4.Dot(leptonMom)) - (neutrinoMom.Dot(qTildeP4) * leptonMom.Dot(inNucleonMomOnShell));
-  l3 *= sign;
-  double l4 = neutrinoMom.Dot(leptonMom) * qTildeP4.Dot(qTildeP4) - 2*neutrinoMom.Dot(qTildeP4)*leptonMom.Dot(qTildeP4);
-  double l5 = neutrinoMom.Dot(inNucleonMomOnShell) * leptonMom.Dot(qTildeP4) + leptonMom.Dot(inNucleonMomOnShell)*neutrinoMom.Dot(qTildeP4) - neutrinoMom.Dot(leptonMom)*inNucleonMomOnShell.Dot(qTildeP4);
+  double LH = 0;
 
-  double LH = 2 *(l1*h1 + l2*h2 + l3*h3 + l4*h4 + l5*h2);
+  if (is_EM) {
+
+  	double l1 = 2*std::pow(mNucleon, 2)* ( 2*(neutrinoMom.Dot(qTildeP4))*(leptonMom.Dot(qTildeP4)) / (qTildeP4.Dot(qTildeP4)) +  neutrinoMom.Dot(leptonMom) - 3.*TMath::Power(leptonMom.M(),2.));
+	double l2 =   (  
+		2*(qTildeP4.Dot(qTildeP4)*( (neutrinoMom.Dot(inNucleonMomOnShell))*(2*qTildeP4.Dot(qTildeP4)*(leptonMom.Dot(inNucleonMomOnShell))
+		- 2*(leptonMom.Dot(qTildeP4))*(inNucleonMomOnShell.Dot(qTildeP4))))
+		- (TMath::Power(leptonMom.M(),2.) - neutrinoMom.Dot(leptonMom) )*( TMath::Power(inNucleonMomOnShell.Dot(qTildeP4),2.) - 
+		inNucleonMomOnShell.Dot(inNucleonMomOnShell) * qTildeP4.Dot(qTildeP4) ))
+		+ 2 * (neutrinoMom.Dot(qTildeP4))*(inNucleonMomOnShell.Dot(qTildeP4)) *
+		( (leptonMom.Dot(qTildeP4))*(inNucleonMomOnShell.Dot(qTildeP4)) - qTildeP4.Dot(qTildeP4) * (leptonMom.Dot(inNucleonMomOnShell)) )
+		) 
+		/ TMath::Power(qTildeP4.Dot(qTildeP4),2.);
+
+	LH = l1*h1 + l2*h2;
+
+  } else {
+
+	bool is_neutrino = pdg::IsNeutrino(init_state.ProbePdg());
+	int sign = (is_neutrino) ? -1 : 1;
+	double l1 = 2*neutrinoMom.Dot(leptonMom)*std::pow(mNucleon, 2);
+	double l2 = 2*(neutrinoMom.Dot(inNucleonMomOnShell)) * (inNucleonMomOnShell.Dot(leptonMom)) - neutrinoMom.Dot(leptonMom)*std::pow(mNucleon, 2);
+	double l3 = (neutrinoMom.Dot(inNucleonMomOnShell) * qTildeP4.Dot(leptonMom)) - (neutrinoMom.Dot(qTildeP4) * leptonMom.Dot(inNucleonMomOnShell));
+	l3 *= sign;
+	double l4 = neutrinoMom.Dot(leptonMom) * qTildeP4.Dot(qTildeP4) - 2*neutrinoMom.Dot(qTildeP4)*leptonMom.Dot(qTildeP4);
+	double l5 = neutrinoMom.Dot(inNucleonMomOnShell) * leptonMom.Dot(qTildeP4) + leptonMom.Dot(inNucleonMomOnShell)*neutrinoMom.Dot(qTildeP4) 
+		  - neutrinoMom.Dot(leptonMom)*inNucleonMomOnShell.Dot(qTildeP4);
+
+	LH = 2 *(l1*h1 + l2*h2 + l3*h3 + l4*h4 + l5*h2);
+
+  }
 
   double xsec = Gfactor * LH;
 
@@ -369,6 +382,9 @@ double LwlynSmithQELCCPXSec::FullDifferentialXSec(const Interaction*  interactio
 
   // Apply given scaling factor
   xsec *= fXSecScale;
+
+// apapadop
+//std::cout << "LS = " << xsec << "   rosenbluth = " << localxsec << std::endl;
 
   // Number of scattering centers in the target
   int NNucl = (pdg::IsProton(nucpdgc)) ? tgt.Z() : tgt.N();
