@@ -17,7 +17,11 @@ export LHAPDF_INC=$GENIESUPPORTPATH/lhapdf/include
 export LHAPDF_LIB=$GENIESUPPORTPATH/lhapdf/lib
 export LD_LIBRARY_PATH=$GENIESUPPORTPATH/lhapdf/lib:$LD_LIBRARY_PATH
 
+<<<<<<< cc1ddeaa571fd03d79c8e48ae0cebd21bef9401a
 export GENIE=/home/afroditi/devel_srcrecoil
+=======
+export GENIE=/home/afroditi/devel_fermimover
+>>>>>>> reverting to previous version of FermiMover
 export PATH=$GENIE/bin:$PATH
 export LD_LIBRARY_PATH=$GENIE/lib:$LD_LIBRARY_PATH
 export XSECSPLINEDIR=$GENIE/data
