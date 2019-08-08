@@ -57,6 +57,9 @@ using namespace genie::controls;
 using namespace genie::constants;
 using namespace genie::utils;
 
+// apapadop
+#include "Physics/NuclearState/FermiMover.h"
+
 //___________________________________________________________________________
 QELEventGenerator::QELEventGenerator() :
     KineGeneratorWithCache("genie::QELEventGenerator")
@@ -140,6 +143,10 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         exit(1);
       }
     }
+
+    // apapadop
+    // Set this to either a proton or neutron to eject a secondary particle
+    int eject_nucleon_pdg = 0;
 
     // In the accept/reject loop, each iteration samples a new value of
     //   - the hit nucleon 3-momentum,
@@ -283,6 +290,14 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
             // add a recoiled nucleus remnant
             this->AddTargetNucleusRemnant(evrec);
 
+	    // apapadop
+	    // Calling the FermiMover class
+
+            double pF2 = p4ptr.Vect().Mag2(); // (fermi momentum)^2	    
+	    if (fSRCRecoilNucleon) { 
+//eject_nucleon_pdg = fFermiMotion->SRCRecoilPDG(nucleon, nucleus, tgt, pF2); 
+}
+
             break; // done
         } else { // accept throw
             LOG("QELEvent", pDEBUG) << "Reject current throw...";
@@ -383,6 +398,17 @@ void QELEventGenerator::LoadConfig(void)
 
     fNuclModel = dynamic_cast<const NuclearModelI *> (this->SubAlg(nuclkey));
     assert(fNuclModel);
+
+    // apapadop
+    fFermiMotion = 0;
+
+    RgKey fermimotionkey = "FermiMotion";
+
+    fFermiMotion = dynamic_cast<const FermiMover *> (this->SubAlg(fermimotionkey));
+    assert(fFermiMotion);
+
+    this->GetParamDef("SimRecoilNucleon",       fSRCRecoilNucleon,    false);
+
 
     // Safety factor for the maximum differential cross section
     GetParamDef( "MaxXSec-SafetyFactor", fSafetyFactor, 1.6  ) ;

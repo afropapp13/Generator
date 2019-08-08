@@ -28,6 +28,9 @@
 #include "Framework/Utils/Range1.h"
 #include "Framework/Conventions/Controls.h"
 
+// apapadop
+#include "Physics/NuclearState/FermiMover.h"
+
 
 namespace genie {
 
@@ -56,6 +59,10 @@ private:
   void AddTargetNucleusRemnant (GHepRecord * evrec) const; ///< add a recoiled nucleus remnant
 
   const NuclearModelI *  fNuclModel;   ///< nuclear model
+
+  // apapadop
+  const FermiMover *  fFermiMotion;   ///< FermiMover to eject 2nd nucleon if necessary
+  bool  fSRCRecoilNucleon;             ///< simulate recoil nucleon due to short range corellation?
 
   mutable double fMinAngleEM;
 
