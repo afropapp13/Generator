@@ -1,6 +1,9 @@
+<<<<<<< 47f216e5a60d68a6a271e19b69cc0ff4576d40cd
 src/Physics/Multinucleon/EventGen/MECGenerator.cxx
 environment_setup.sh
 src/Framework/Numerical/Interpolator2D.cxx
+=======
+>>>>>>> final form of fermimover ready for pull request
 bin/
 lib/
 build-env.log

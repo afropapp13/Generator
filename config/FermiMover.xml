@@ -9,6 +9,7 @@
 
    <!-- Option relevant to simulating Short Range Correlation (SRC) effects  -->
    <param type="bool" name="SimRecoilNucleon"> false </param>
+   <param type="float" name="PNPairPercentage"> 0.95 </param>
    
      <param type="alg"    name="NuclearModel">   genie::NuclearModelMap/Default    </param>
   </param_set>
