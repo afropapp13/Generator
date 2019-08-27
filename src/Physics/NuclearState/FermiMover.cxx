@@ -211,12 +211,10 @@ void FermiMover::KickHitNucleon(GHepRecord * evrec) const
 	kF= TMath::Power(3*kPi2*numNuc*
 		  genie::utils::nuclear::Density(radius,A),1.0/3.0) *hbarc;
       }else{
-	FermiMomentumTablePool * kftp = FermiMomentumTablePool::Instance();
-	const FermiMomentumTable * kft  = kftp->GetTable("Default");
-	kF = kft->FindClosestKF(nucleus_pdgc, nucleon_pdgc);
+	kF = fKFTable->FindClosestKF(nucleus_pdgc, nucleon_pdgc);
       }
       if (TMath::Sqrt(pF2) > kF) {
-        double Pp = (nucleon->Pdg() == kPdgProton) ? 0.05 : 0.95;
+        double Pp = (nucleon->Pdg() == kPdgProton) ? fPPPairPercentage : fPNPairPercentage;
         RandomGen * rnd = RandomGen::Instance();
         double prob = rnd->RndGen().Rndm();
         eject_nucleon_pdg = (prob > Pp) ? kPdgNeutron : kPdgProton;

@@ -22,6 +22,10 @@
 #define _FERMI_MOVER_H_
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
+#include "Framework/GHEP/GHepParticle.h"
+#include "Physics/NuclearState/FermiMomentumTable.h"
+#include "Framework/Interaction/Target.h"
+
 
 namespace genie {
 
@@ -64,6 +68,11 @@ private:
   bool  fKeepNuclOnMassShell;          ///< keep hit bound nucleon on the mass shell?
   bool  fSRCRecoilNucleon;             ///< simulate recoil nucleon due to short range corellation?
   const NuclearModelI *  fNuclModel;   ///< nuclear model
+
+  double fPPPairPercentage;
+  double fPNPairPercentage;
+  const FermiMomentumTable * fKFTable;
+  string fKFTableName;
 };
 
 }      // genie namespace
