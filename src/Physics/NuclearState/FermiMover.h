@@ -55,11 +55,6 @@ public :
 private:
 
   void KickHitNucleon          (GHepRecord * evrec) const; ///< give hit nucleon a momentum
-// apapadop
-//  void Emit2ndNucleonFromSRC   (GHepRecord * evrec,
-//                                const int eject_nucleon_pdg) const;
-//                                ///^ emit a 2nd nucleon due to short range corellations
-//  int SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pF2) const; // determine the PDG code of the SRC pair
 
   void AddTargetNucleusRemnant (GHepRecord * evrec) const; ///< add a recoiled nucleus remnant
 
