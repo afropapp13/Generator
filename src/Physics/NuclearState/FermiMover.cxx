@@ -302,13 +302,17 @@ void FermiMover::Emit2ndNucleonFromSRC(GHepRecord * evrec,
   GHepStatus_t status = kIStHadronInTheNucleus;
   int imom = evrec->TargetNucleusPosition();
 
-  //-- Has opposite momentum from the struck nucleon
-  double vx = nucleon->Vx();
-  double vy = nucleon->Vy();
-  double vz = nucleon->Vz();
-  double px = -1.* nucleon->Px();
-  double py = -1.* nucleon->Py();
-  double pz = -1.* nucleon->Pz();
+  // recoil nucleon not exactly in the opposite direction of the hit nucleon -> use gaussian distribution
+  double px = gRandom->Gaus(0,fStandardDeviation) - nucleon->Px();
+  double py = gRandom->Gaus(0,fStandardDeviation) - nucleon->Py();
+  double pz = gRandom->Gaus(0,fStandardDeviation) - nucleon->Pz();
+
+  // recoil particle production point moved 1 fm away from hit nucleon
+  double p = TMath::Sqrt(nucleon->Px()*nucleon->Px()+nucleon->Py()*nucleon->Py()+nucleon->Pz()*nucleon->Pz());
+  double vx = nucleon->Vx() - nucleon->Px() / p;
+  double vy = nucleon->Vy() - nucleon->Py() / p;
+  double vz = nucleon->Vz() - nucleon->Pz() / p;
+
   double M  = PDGLibrary::Instance()->Find(eject_pdg_code)->Mass();
   double E  = TMath::Sqrt(px*px+py*py+pz*pz+M*M);
 
@@ -418,5 +422,8 @@ void FermiMover::LoadConfig(void)
   FermiMomentumTablePool * kftp = FermiMomentumTablePool::Instance();
   fKFTable = kftp->GetTable(fKFTableName);
   assert(fKFTable);
+
+  // Width of gaussian distribution for SRC recoil
+  GetParam( "StandardDeviation", fStandardDeviation ) ;
 }
 //____________________________________________________________________________

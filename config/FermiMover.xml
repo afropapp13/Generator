@@ -9,7 +9,12 @@
 
    <!-- Option relevant to simulating Short Range Correlation (SRC) effects  -->
    <param type="bool" name="SimRecoilNucleon"> false </param>
+    <!--Correlated Fermi Gas Model
+        Percentage of high momentum / SRC tail
+        In the Correlated Fermi Gas Model, 20% of our nucleons live under the high momentum tail 
+        (K. S. Egiyan et al., Phys. Rev. C 68 (2003) 014313 and Phys. Rev. Lett. 96 (2006) 082501.)-->
    <param type="float" name="PNPairPercentage"> 0.95 </param>
+   <param type="float" name="StandardDeviation"> 0.14 </param>
    
      <param type="alg"    name="NuclearModel">   genie::NuclearModelMap/Default    </param>
   </param_set>

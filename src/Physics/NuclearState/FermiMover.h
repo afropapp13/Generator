@@ -68,6 +68,8 @@ private:
   double fPNPairPercentage;
   const FermiMomentumTable * fKFTable;
   string fKFTableName;
+
+  double fStandardDeviation;
 };
 
 }      // genie namespace

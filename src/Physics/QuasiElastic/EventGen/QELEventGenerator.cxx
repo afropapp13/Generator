@@ -144,10 +144,6 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
       }
     }
 
-    // apapadop
-    // Set this to either a proton or neutron to eject a secondary particle
-    int eject_nucleon_pdg = 0;
-
     // In the accept/reject loop, each iteration samples a new value of
     //   - the hit nucleon 3-momentum,
     //   - its binding energy (only actually used if fHitNucleonBindingMode == kUseNuclearModel)
@@ -287,16 +283,19 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
             nucleon->SetMomentum(p4ptr);
             nucleon->SetRemovalEnergy(fEb);
 
+	    // Calling the FermiMover class
+            double pF2 = p4ptr.Vect().Mag2(); // (fermi momentum)^2	
+	    // Set this to either a proton or neutron to eject a secondary particle
+	    int eject_nucleon_pdg = 0;    
+	    if (fSRCRecoilNucleon) { 
+			eject_nucleon_pdg = fFermiMotion->SRCRecoilPDG(nucleon, nucleus, tgt, pF2); 
+	    }
+	    if(eject_nucleon_pdg != 0) {
+		fFermiMotion->Emit2ndNucleonFromSRC(evrec, eject_nucleon_pdg);
+	    }
+
             // add a recoiled nucleus remnant
             this->AddTargetNucleusRemnant(evrec);
-
-	    // apapadop
-	    // Calling the FermiMover class
-
-            double pF2 = p4ptr.Vect().Mag2(); // (fermi momentum)^2	    
-	    if (fSRCRecoilNucleon) { 
-//eject_nucleon_pdg = fFermiMotion->SRCRecoilPDG(nucleon, nucleus, tgt, pF2); 
-}
 
             break; // done
         } else { // accept throw
