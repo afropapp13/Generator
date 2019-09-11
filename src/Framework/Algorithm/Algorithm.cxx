@@ -380,12 +380,12 @@ const Algorithm * Algorithm::SubAlg(const RgKey & registry_key) const
 	  iter != fOwnedSubAlgMp -> end()  ;
 	  ++iter ) {
 
-      algo = iter -> second -> SubAlgo( registry_key ) ;
+      algo = iter -> second -> SubAlg( registry_key ) ;
       if ( algo ) return algo ;
       
     }
     
-    LOG("Algorithm", pWARNING) 
+    LOG("Algorithm", pWARN) 
       << "Owned sub-alg pointed to by key: " << registry_key 
       << " was not found at any lelvel within alg: " << this->Id().Key() ;
     
