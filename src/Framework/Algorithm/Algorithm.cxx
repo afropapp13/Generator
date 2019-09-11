@@ -361,7 +361,7 @@ const Algorithm * Algorithm::SubAlg(const RgKey & registry_key) const
 //
   LOG("Algorithm", pINFO)
     << "Fetching sub-alg within alg: " << this->Id().Key()
-                                   << " pointed to by key: " << registry_key;
+    << " pointed to by key: " << registry_key;
   
   //-- if the algorithm owns its substructure:
   //      return the sub-algorithm from the local pool
@@ -369,10 +369,27 @@ const Algorithm * Algorithm::SubAlg(const RgKey & registry_key) const
   if(fOwnsSubstruc) {
     AlgMapConstIter iter = fOwnedSubAlgMp->find(registry_key);
     if(iter!=fOwnedSubAlgMp->end()) return iter->second;
-    LOG("Algorithm", pERROR) 
+    
+    LOG("Algorithm", pINFO) 
       << "Owned sub-alg pointed to by key: " << registry_key 
-      << " was not found within alg: " << this->Id().Key();
-     return 0;
+      << " was not found in the first level within alg: " << this->Id().Key();
+
+    const Algorithm * algo = nullptr ;
+    
+    for ( iter = fOwnedSubAlgMp -> begin() ;
+	  iter != fOwnedSubAlgMp -> end()  ;
+	  ++iter ) {
+
+      algo = iter -> second -> SubAlgo( registry_key ) ;
+      if ( algo ) return algo ;
+      
+    }
+    
+    LOG("Algorithm", pWARNING) 
+      << "Owned sub-alg pointed to by key: " << registry_key 
+      << " was not found at any lelvel within alg: " << this->Id().Key() ;
+    
+    return algo ;
   }
 
   //-- if the algorithm does not own its substructure:
