@@ -25,6 +25,10 @@
 #include "Framework/GHEP/GHepParticle.h"
 #include "Physics/NuclearState/FermiMomentumTable.h"
 #include "Framework/Interaction/Target.h"
+<<<<<<< HEAD
+=======
+
+>>>>>>> c43d763466694e40280231958f7aaeff99a22420
 
 namespace genie {
 
