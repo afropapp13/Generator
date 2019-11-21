@@ -46,7 +46,7 @@
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Physics/QuasiElastic/EventGen/QELEventGenerator.h"
-
+#include "Physics/NuclearState/SecondNucleonEmissionI.h"
 #include "Physics/NuclearState/NuclearModelI.h"
 #include "Framework/Numerical/MathUtils.h"
 #include "Framework/Utils/KineUtils.h"
@@ -280,6 +280,9 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
             nucleon->SetMomentum(p4ptr);
             nucleon->SetRemovalEnergy(fEb);
 
+            // handle the addition of the recoil nucleon
+            if ( fSecondEmitter ) fSecondEmitter -> ProcessEventRecord( evrec ) ;	    
+
             // add a recoiled nucleus remnant
             this->AddTargetNucleusRemnant(evrec);
 
@@ -375,9 +378,21 @@ void QELEventGenerator::Configure(string config)
 //____________________________________________________________________________
 void QELEventGenerator::LoadConfig(void)
 {
+
+    fSecondEmitter = nullptr;
+
+    // handles the addition of the recoil nucleon
+    RgKey nuclearrecoilkey = "SRCNucleonEmitter" ;
+
+    const genie::Registry & config = GetConfig();
+    if (config.Exists(nuclearrecoilkey)) { 
+	fSecondEmitter = dynamic_cast<const SecondNucleonEmissionI *> (this->SubAlg(nuclearrecoilkey));
+	assert(fSecondEmitter);
+    }
+
     // Load sub-algorithms and config data to reduce the number of registry
     // lookups
-        fNuclModel = 0;
+    fNuclModel = nullptr;
 
     RgKey nuclkey = "NuclearModel";
 

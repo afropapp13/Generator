@@ -92,10 +92,42 @@ void SRCNuclearRecoil::ProcessEventRecord(GHepRecord * evrec) const
   int eject_nucleon_pdg = this->SRCRecoilPDG(nucleon, nucleus, tgt, pF2);
 
   // Ejection of secondary particle
-  if (eject_nucleon_pdg != 0) { EmitSecondNucleon(evrec,eject_nucleon_pdg); }
+  if (eject_nucleon_pdg != 0) { 
+	if (fGaussianEmission) { EmitSecondNucleon(evrec,eject_nucleon_pdg); } 
+        else { SecondNucleonEmissionI::EmitSecondNucleon(evrec,eject_nucleon_pdg); }
+  }
 
 }
 
+//___________________________________________________________________________
+
+bool SRCNuclearRecoil::EmitSecondNucleon(GHepRecord * evrec, const int eject_nucleon_pdg) const {
+
+  LOG("SRCNuclearRecoil", pINFO) << "Adding a recoil nucleon with PDG " << eject_nucleon_pdg ;
+
+  GHepParticle * nucleon = evrec->HitNucleon();
+
+  GHepStatus_t status = kIStHadronInTheNucleus;
+  int imom = evrec->TargetNucleusPosition();
+
+  //-- Has opposite momentum from the struck nucleon
+  double vx = nucleon->Vx();
+  double vy = nucleon->Vy();
+  double vz = nucleon->Vz();
+  // recoil nucleon not exactly in the opposite direction of the hit nucleon 
+  // Use gaussian distribution for center-of-mass motion
+  double px = gRandom->Gaus(0,fGaussianSigma) - nucleon->Px();
+  double py = gRandom->Gaus(0,fGaussianSigma) - nucleon->Py();
+  double pz = gRandom->Gaus(0,fGaussianSigma) - nucleon->Pz();
+
+  double M  = PDGLibrary::Instance()->Find(eject_nucleon_pdg)->Mass();
+  double E  = TMath::Sqrt(px*px+py*py+pz*pz+M*M);
+
+  evrec->AddParticle( eject_nucleon_pdg, status, imom, -1, -1, -1, px, py, pz, E, vx, vy, vz, 0 );
+
+  return true ;
+
+}
 //___________________________________________________________________________
 
 int SRCNuclearRecoil::SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pF2) const {
@@ -167,5 +199,9 @@ void SRCNuclearRecoil::LoadConfig(void)
   FermiMomentumTablePool * kftp = FermiMomentumTablePool::Instance();
   fKFTable = kftp->GetTable(fKFTableName);
   assert(fKFTable);
+
+  this->GetParam("SRC-GaussianEmission",fGaussianEmission);
+  this->GetParamDef("SRC-GaussianSigma",fGaussianSigma,0.);
+
 }
 //____________________________________________________________________________

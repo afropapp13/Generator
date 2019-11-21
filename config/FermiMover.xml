@@ -28,10 +28,10 @@ SecondNucleonEmitter          alg     No         SubAlg to add a second nucleon
      <param type="alg" name="SecondNucleonEmitter"> genie::SRCNuclearRecoil/Default </param>
   </param_set>
 
-<!--
+
   <param_set name="GaussianRecoil">
-     <param type="bool" name="SimRecoilNucleon"> true </param>
+     <param type="alg" name="SecondNucleonEmitter"> genie::SRCNuclearRecoil/Gaussian </param>
   </param_set>
--->
+
 
 </alg_conf>

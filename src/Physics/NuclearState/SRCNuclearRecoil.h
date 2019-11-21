@@ -43,6 +43,10 @@ public :
   void Configure(const Registry & config);
   void Configure(string config);
 
+protected:
+
+  virtual bool EmitSecondNucleon(GHepRecord * evrec, const int eject_nucleon_pdg) const; // Handles the gaussian emission of the SRC recoil
+
 private:
 
   int SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pF2) const; // determine the PDG code of the SRC pair
@@ -53,6 +57,9 @@ private:
   double fPNPairPercentage;
   const FermiMomentumTable * fKFTable;
   string fKFTableName;
+
+  bool fGaussianEmission;
+  double fGaussianSigma;
 };
 
 }      // genie namespace

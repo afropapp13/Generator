@@ -27,6 +27,7 @@
 #include "Physics/QuasiElastic/XSection/QELUtils.h"
 #include "Framework/Utils/Range1.h"
 #include "Framework/Conventions/Controls.h"
+#include "Physics/NuclearState/SecondNucleonEmissionI.h"
 
 
 namespace genie {
@@ -66,6 +67,8 @@ private:
   /// The number of nucleons to sample from the nuclear model when choosing a maximum
   /// momentum to use in ComputeMaxXSec()
   int fMaxXSecNucleonThrows;
+
+  const SecondNucleonEmissionI *  fSecondEmitter ;
 
 }; // class definition
 
