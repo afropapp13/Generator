@@ -844,6 +844,12 @@ void ConvertToGST(void)
 	    if(p->FirstMother()==ist_store) {
 	      prim_had_syst.push_back(ip);
 	    }
+           
+            if (ist_comp==kIStHadronInTheNucleus) {
+                int mother = p->FirstMother();
+                if (mother == event.TargetNucleusPosition()) { prim_had_syst.push_back(ip); }
+            }
+
 	  }
 	}      
 	if(is_mec){
