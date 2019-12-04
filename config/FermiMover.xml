@@ -24,12 +24,12 @@ SecondNucleonEmitter          alg     No         SubAlg to add a second nucleon
      <param type="bool"   name="KeepHitNuclOnMassShell"> true                       </param>
   </param_set>
 
-  <param_set name="SRCRecoil">
+  <param_set name="BackToBackSRCRecoil">
      <param type="alg" name="SecondNucleonEmitter"> genie::SRCNuclearRecoil/Default </param>
   </param_set>
 
 
-  <param_set name="GaussianRecoil">
+  <param_set name="GaussianSRCRecoil">
      <param type="alg" name="SecondNucleonEmitter"> genie::SRCNuclearRecoil/Gaussian </param>
   </param_set>
 
