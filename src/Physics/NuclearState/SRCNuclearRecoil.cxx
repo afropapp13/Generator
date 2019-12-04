@@ -129,7 +129,7 @@ bool SRCNuclearRecoil::EmitSecondNucleon(GHepRecord * evrec, const int eject_nuc
 }
 //___________________________________________________________________________
 
-int SRCNuclearRecoil::SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pF2) const {
+int SRCNuclearRecoil::SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pN2) const {
 
       int eject_nucleon_pdg = 0;
 
@@ -151,7 +151,7 @@ int SRCNuclearRecoil::SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleu
       }else{
         kF = fKFTable->FindClosestKF(nucleus_pdgc, nucleon_pdgc);
       }
-      if (TMath::Sqrt(pF2) > kF) {
+      if (TMath::Sqrt(pN2) > kF) {
 
         double Pp = (nucleon->Pdg() == kPdgProton) ? fPPPairPercentage : fPNPairPercentage;
         RandomGen * rnd = RandomGen::Instance();
