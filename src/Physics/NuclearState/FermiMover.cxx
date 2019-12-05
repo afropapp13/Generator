@@ -118,7 +118,7 @@ void FermiMover::KickHitNucleon(GHepRecord * evrec) const
   // generate a Fermi momentum & removal energy
   // call GenerateNucleon with a radius in case the model is LocalFGM
   double rad = nucleon->X4()->Vect().Mag();
-  fNuclModel->GenerateNucleon(*tgt,rad);
+  fNuclModel->GenerateNucleon(*tgt);
 
   TVector3 p3 = fNuclModel->Momentum3();
   double w    = fNuclModel->RemovalEnergy();

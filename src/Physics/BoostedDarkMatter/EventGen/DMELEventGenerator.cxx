@@ -155,7 +155,9 @@ void DMELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         // If the target is a composite nucleus, then sample an initial nucleon
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
-          fNuclModel->GenerateNucleon(*tgt, hitNucPos);
+	  // apapadop
+	  //          fNuclModel->GenerateNucleon(*tgt, hitNucPos);
+	            fNuclModel->GenerateNucleon(*tgt);
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and

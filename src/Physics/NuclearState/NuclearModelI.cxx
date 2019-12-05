@@ -36,16 +36,5 @@ using namespace genie::controls;
 
 //____________________________________________________________________________
 
-bool NuclearModelI::GenerateNucleon(const Target & tgt,
-                                    double /*hitNucleonRadius*/) const
-  {
-    return GenerateNucleon(tgt);
-  }
-
-double NuclearModelI::Prob(double p, double w, const Target & tgt,
-                           double /*hitNucleonRadius*/) const
-  {
-    return Prob(p,w,tgt);
-  }
 
 //____________________________________________________________________________

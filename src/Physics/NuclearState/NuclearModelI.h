@@ -45,12 +45,8 @@ public:
   virtual ~NuclearModelI() {};
 
   virtual bool           GenerateNucleon (const Target &) const = 0;
-  virtual bool           GenerateNucleon (const Target & tgt,
-                                          double hitNucleonRadius) const;
 
   virtual double         Prob            (double p, double w, const Target &) const = 0;
-  virtual double         Prob            (double p, double w, const Target & tgt,
-                                          double hitNucleonRadius) const;
 
   virtual NuclearModel_t ModelType       (const Target &) const = 0;
 

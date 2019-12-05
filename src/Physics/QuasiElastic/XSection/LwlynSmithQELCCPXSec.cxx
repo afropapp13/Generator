@@ -369,7 +369,8 @@ double LwlynSmithQELCCPXSec::Integral(const Interaction * in) const
       tgt->SetHitNucPosition(nucpos.Mag());
 
       // Generate a nucleon
-      fNuclModel->GenerateNucleon(*tgt, nucpos.Mag());
+      fNuclModel->GenerateNucleon(*tgt);
+
       TVector3 p3N = fNuclModel->Momentum3();
       double   EN  = Mi - TMath::Sqrt(p3N.Mag2() + Mf*Mf);
       TLorentzVector* p4N = tgt->HitNucP4Ptr();

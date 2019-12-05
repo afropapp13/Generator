@@ -57,31 +57,6 @@ NuclearModelMap::~NuclearModelMap()
 
 }
 //____________________________________________________________________________
-bool NuclearModelMap::GenerateNucleon(const Target & target,
-                                      double hitNucleonRadius) const
-{
-  const NuclearModelI * nm = this->SelectModel(target);
-  if(!nm) return false;
-
-  bool ok = nm->GenerateNucleon(target,hitNucleonRadius);
-
-  fCurrRemovalEnergy = nm->RemovalEnergy();
-  const TVector3& p  = nm->Momentum3();
-  fCurrMomentum.SetXYZ(p.Px(), p.Py(), p.Pz());
-  fFermiMoverInteractionType = nm->GetFermiMoverInteractionType();
-
-  return ok;
-}
-//____________________________________________________________________________
-double NuclearModelMap::Prob(double p, double w, const Target & target,
-                             double hitNucRadius) const
-{
-  const NuclearModelI * nm = this->SelectModel(target);
-  if(!nm) return 0;
-
-  return nm->Prob(p,w,target,hitNucRadius);
-}
-//____________________________________________________________________________
 NuclearModel_t NuclearModelMap::ModelType(const Target & target) const
 {
   const NuclearModelI * nm = this->SelectModel(target);

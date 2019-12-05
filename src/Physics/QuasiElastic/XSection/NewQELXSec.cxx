@@ -118,7 +118,7 @@ double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in)
   if ( !tgt->IsNucleus() || probeE > E_lab_cutoff ) {
     tgt->SetHitNucPosition(0.);
 
-    if ( tgt->IsNucleus() ) nucl_model->GenerateNucleon(*tgt, 0.);
+    if ( tgt->IsNucleus() ) nucl_model->GenerateNucleon(*tgt);
     else {
       nucl_model->SetRemovalEnergy(0.);
       interaction->SetBit( kIAssumeFreeNucleon );
@@ -148,7 +148,8 @@ double NewQELXSec::Integrate(const XSecAlgorithmI* model, const Interaction* in)
     // Sample a new nucleon 3-momentum and removal energy (this will be applied
     // to the nucleon via a call to genie::utils::ComputeFullQELPXSec(), so
     // there's no need to mess with its 4-momentum here)
-    nucl_model->GenerateNucleon(*tgt, radius);
+
+    nucl_model->GenerateNucleon(*tgt);
 
     // The initial state variables have all been defined, so integrate over
     // the final lepton angles.

@@ -166,7 +166,7 @@ void QELEventGenerator::ProcessEventRecord(GHepRecord * evrec) const
         // If the target is a composite nucleus, then sample an initial nucleon
         // 3-momentum and removal energy from the nuclear model.
         if ( tgt->IsNucleus() ) {
-          fNuclModel->GenerateNucleon(*tgt, hitNucPos);
+          fNuclModel->GenerateNucleon(*tgt);
         }
         else {
           // Otherwise, just set the nucleon to be at rest in the lab frame and
@@ -453,8 +453,7 @@ double QELEventGenerator::ComputeMaxXSec(const Interaction * in) const
 
       // TODO: document this, won't work for spectral functions
       double dummy_w = -1.;
-      double prob = fNuclModel->Prob(pNi_next, dummy_w, tgt,
-        tgt.HitNucPosition());
+      double prob = fNuclModel->Prob(pNi_next, dummy_w, tgt);
 
       double costh0_max = genie::utils::CosTheta0Max( *interaction );
 

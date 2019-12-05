@@ -38,19 +38,6 @@ public:
   using NuclearModelI::GenerateNucleon;  // inherit versions not overridden here
   using NuclearModelI::Prob;
 
-  //-- Allow GenerateNucleon to be called with a radius
-  virtual bool   GenerateNucleon (const Target & t,
-                                  double hitNucleonRadius) const;
-  virtual double  Prob           (double p, double w, const Target & t,
-                                  double hitNucleonRadius) const;
-
-  //-- implement the NuclearModelI interface
-  bool GenerateNucleon (const Target & t) const {
-    return GenerateNucleon(t,0.0);
-  }
-  double Prob (double p, double w, const Target & t) const {
-    return Prob(p,w,t,0.0);
-  }
   NuclearModel_t ModelType       (const Target & t) const;
 
   //-- override the Algorithm::Configure methods to load configuration
