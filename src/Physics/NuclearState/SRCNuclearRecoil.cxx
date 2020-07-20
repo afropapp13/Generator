@@ -72,12 +72,12 @@ SRCNuclearRecoil::~SRCNuclearRecoil()
 void SRCNuclearRecoil::ProcessEventRecord(GHepRecord * evrec) const
 {
 
-  Interaction *  interaction = evrec       -> Summary();
-  InitialState * init_state  = interaction -> InitStatePtr();
-  Target *       tgt         = init_state  -> TgtPtr();
+  const Interaction *  interaction = evrec       -> Summary();
+  const InitialState & init_state  = interaction -> InitState();
+  const Target       & tgt         = init_state.Tgt();
 
   // do nothing for non-nuclear targets
-  if(!tgt->IsNucleus()) return;
+  if(! tgt.IsNucleus()) return;
 
   // access the hit nucleon and target nucleus at the GHEP record
   GHepParticle * nucleon = evrec->HitNucleon();
@@ -85,10 +85,8 @@ void SRCNuclearRecoil::ProcessEventRecord(GHepRecord * evrec) const
   assert(nucleon);
   assert(nucleus);
 
-  double pN2 = TMath::Power(nucleon->P4()->Rho(),2.); // (momentum of struck nucleon)^2
-
   // Set this to either a proton or neutron to eject a secondary particle
-  int eject_nucleon_pdg = this->SRCRecoilPDG(nucleon, nucleus, tgt, pN2);
+  int eject_nucleon_pdg = this->SRCRecoilPDG( *nucleon, tgt );
 
   // Ejection of secondary particle
   if (eject_nucleon_pdg != 0) { 
@@ -98,7 +96,7 @@ void SRCNuclearRecoil::ProcessEventRecord(GHepRecord * evrec) const
 
 }
 
-//___________________________________________________________________________
+
 
 bool SRCNuclearRecoil::EmitSecondNucleon(GHepRecord * evrec, const int eject_nucleon_pdg) const {
 
@@ -127,39 +125,30 @@ bool SRCNuclearRecoil::EmitSecondNucleon(GHepRecord * evrec, const int eject_nuc
   return true ;
 
 }
+
 //___________________________________________________________________________
 
-int SRCNuclearRecoil::SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pN2) const {
+
+int SRCNuclearRecoil::SRCRecoilPDG( const GHepParticle & nucleon, const Target & tgt) const {
 
       int eject_nucleon_pdg = 0;
 
-      const int nucleus_pdgc = nucleus->Pdg();
-      const int nucleon_pdgc = nucleon->Pdg();
+      // const int nucleus_pdgc = tgt->Pdg();
+      const int nucleon_pdgc = nucleon.Pdg();
 
-      // Calculate the Fermi momentum, using a local Fermi gas if the
-      // nuclear model is LocalFGM, and RFG otherwise
-      double kF;
-      if(fNuclModel->ModelType(*tgt) == kNucmLocalFermiGas){
-	assert(pdg::IsProton(nucleon_pdgc) || pdg::IsNeutron(nucleon_pdgc));
-	int A = tgt->A();
-	bool is_p = pdg::IsProton(nucleon_pdgc);
-	double numNuc = (is_p) ? (double)tgt->Z():(double)tgt->N();
-	double radius = nucleon->X4()->Vect().Mag();
-	double hbarc = kLightSpeed*kPlankConstant/genie::units::fermi;
-	kF= TMath::Power(3*kPi2*numNuc*
-		  genie::utils::nuclear::Density(radius,A),1.0/3.0) *hbarc;
-      }else{
-        kF = fKFTable->FindClosestKF(nucleus_pdgc, nucleon_pdgc);
-      }
+      double pN2 = TMath::Power(nucleon.P4()->Rho(),2.); // (momentum of struck nucleon)^2
+
+      double kF = fNuclModel -> LocalFermiMomentum( tgt, 
+						    nucleon_pdgc, 
+						    nucleon.X4()->Vect().Mag() );
+
       if (TMath::Sqrt(pN2) > kF) {
-
-        double Pp = (nucleon->Pdg() == kPdgProton) ? fPPPairPercentage : fPNPairPercentage;
+        double Pp = (nucleon_pdgc == kPdgProton) ? fPPPairPercentage : fPNPairPercentage;
         RandomGen * rnd = RandomGen::Instance();
         double prob = rnd->RndGen().Rndm();
         eject_nucleon_pdg = (prob > Pp) ? kPdgNeutron : kPdgProton;
-
       }
-
+      
       return eject_nucleon_pdg;
 }
 //___________________________________________________________________________
@@ -191,13 +180,6 @@ void SRCNuclearRecoil::LoadConfig(void)
   }
 
   fPPPairPercentage = 1. - fPNPairPercentage;
-
-  // Get the Fermi momentum table for relativistic Fermi gas
-  GetParam( "FermiMomentumTable", fKFTableName ) ;
-  fKFTable = 0;
-  FermiMomentumTablePool * kftp = FermiMomentumTablePool::Instance();
-  fKFTable = kftp->GetTable(fKFTableName);
-  assert(fKFTable);
 
   this->GetParam("SRC-GaussianEmission",fGaussianEmission);
   this->GetParamDef("SRC-GaussianSigma",fGaussianSigma,0.);

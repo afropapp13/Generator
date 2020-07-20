@@ -49,17 +49,16 @@ protected:
 
 private:
 
-  int SRCRecoilPDG(GHepParticle * nucleon, GHepParticle * nucleus, Target* tgt, double pF2) const; // determine the PDG code of the SRC pair
-
-  void LoadConfig (void);
+  void LoadConfig (void);  
+  
+  int SRCRecoilPDG( const GHepParticle & nucleon, const Target & tgt) const; // determine the PDG code of the SRC pair
 
   double fPPPairPercentage;
   double fPNPairPercentage;
-  const FermiMomentumTable * fKFTable;
-  string fKFTableName;
 
   bool fGaussianEmission;
   double fGaussianSigma;
+
 };
 
 }      // genie namespace
