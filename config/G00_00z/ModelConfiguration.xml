@@ -58,7 +58,7 @@ STFC, Rutherford Appleton Laboratory
    - genie::HNIntranuke2015/Default
    - genie::HNIntranuke2015/OsetOff
   -->
-  <param type="bool" name="HadronTransp-Enable"> true </param>
+  <param type="bool" name="HadronTransp-Enable"> false </param>
   <param type="alg"  name="HadronTransp-Model">  genie::HAIntranuke/Default  </param>
 
 
