@@ -106,14 +106,14 @@
                 t2k_rootracker format. 
                 The output file is named myfile.gtrac.root
 
-\author  Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-         University of Liverpool & STFC Rutherford Appleton Lab
+\author  Costas Andreopoulos <constantinos.andreopoulos \at cern.ch>
+ University of Liverpool & STFC Rutherford Appleton Laboratory
 
 \created September 23, 2005
 
-\cpright Copyright (c) 2003-2019, The GENIE Collaboration
+\cpright Copyright (c) 2003-2020, The GENIE Collaboration
          For the full text of the license visit http://copyright.genie-mc.org
-         or see $GENIE/LICENSE
+         
 */
 //_____________________________________________________________________________________________
 
@@ -398,6 +398,10 @@ void ConvertToGST(void)
                                  //  - ((e/h) * energy)   for pi0, gamma, e-, e+, where e/h is set to 1.3
                                  //  - (kinetic energy) for other particles
 
+  Double_t  brXSec;              // the event cross section in 1E-38cm^2
+  Double_t  brDXSec;             // is the differential cross section for the selected in 1E-38cm^2/{K^n}
+  UInt_t    brKPS;               // phase space that the xsec has been evaluated into
+                              
   // Open output file & create output summary tree & create the tree branches
   //
   LOG("gntpc", pNOTICE) 
@@ -482,14 +486,14 @@ void ConvertToGST(void)
   s_tree->Branch("niem",          &brNiEM,	    "niem/I"	    );
   s_tree->Branch("niother",       &brNiOther,       "niother/I"     );
   s_tree->Branch("ni",	         &brNi,	            "ni/I"	    );
-  s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I "   );
-  s_tree->Branch("resc",          brResc,	    "resc[ni]/I "   );
+  s_tree->Branch("pdgi",          brPdgi,	    "pdgi[ni]/I"   );
+  s_tree->Branch("resc",          brResc,	    "resc[ni]/I"   );
   s_tree->Branch("Ei",	          brEi,	            "Ei[ni]/D"      );
   s_tree->Branch("pxi",	          brPxi,	    "pxi[ni]/D"     );
   s_tree->Branch("pyi",	          brPyi,	    "pyi[ni]/D"     );
   s_tree->Branch("pzi",	          brPzi,	    "pzi[ni]/D"     );
   s_tree->Branch("nf",	         &brNf,	            "nf/I"	    );
-  s_tree->Branch("pdgf",          brPdgf,	    "pdgf[nf]/I "   );
+  s_tree->Branch("pdgf",          brPdgf,	    "pdgf[nf]/I"   );
   s_tree->Branch("Ef",	          brEf,	            "Ef[nf]/D"      );
   s_tree->Branch("pxf",	          brPxf,	    "pxf[nf]/D"     );
   s_tree->Branch("pyf",	          brPyf,	    "pyf[nf]/D"     );
@@ -502,6 +506,9 @@ void ConvertToGST(void)
   s_tree->Branch("vtxt",         &brVtxT,	    "vtxt/D"        );
   s_tree->Branch("sumKEf",       &brSumKEf,	    "sumKEf/D"      );
   s_tree->Branch("calresp0",     &brCalResp0,	    "calresp0/D"    );
+  s_tree->Branch("XSec",         &brXSec,	    "XSec/D"    );
+  s_tree->Branch("DXSec",         &brDXSec,	    "DXSec/D"    );
+  s_tree->Branch("KPS",          &brKPS,	    "KPS/i"    );
 
   // Open the ROOT file and get the TTree & its header
   TFile fin(gOptInpFileName.c_str(),"READ");
@@ -605,7 +612,7 @@ void ConvertToGST(void)
     bool is_qel    = proc_info.IsQuasiElastic();
     bool is_res    = proc_info.IsResonant();
     bool is_dis    = proc_info.IsDeepInelastic();
-    bool is_coh    = proc_info.IsCoherent();
+    bool is_coh    = proc_info.IsCoherentProduction();
     bool is_dfr    = proc_info.IsDiffractive();
     bool is_imd    = proc_info.IsInverseMuDecay();
     bool is_imdanh = proc_info.IsIMDAnnihilation();
@@ -747,11 +754,13 @@ void ConvertToGST(void)
       // now add pi0's that were decayed as short lived particles
       else if(pdgc == kPdgPi0){
 	int ifd = p->FirstDaughter();
-	int fd_pdgc = event.Particle(ifd)->Pdg();
-	// just require that first daughter is one of gamma, e+ or e-  
-	if(fd_pdgc == kPdgGamma || fd_pdgc == kPdgElectron || fd_pdgc == kPdgPositron){
-	  final_had_syst.push_back(ip);
-	}
+        if ( ifd != -1 ) {
+          int fd_pdgc = event.Particle(ifd)->Pdg();
+          // just require that first daughter is one of gamma, e+ or e-  
+          if(fd_pdgc == kPdgGamma || fd_pdgc == kPdgElectron || fd_pdgc == kPdgPositron){
+            final_had_syst.push_back(ip);
+          }
+        }
       }
     }//particle-loop
 
@@ -932,6 +941,12 @@ void ConvertToGST(void)
     brPzl        = k2.Pz();      
     brPl         = k2.P();
     brCosthl     = TMath::Cos( k2.Vect().Angle(k1.Vect()) );
+
+    // XSec Info
+
+    brXSec  = event.XSec()*(1E+38/units::cm2);
+    brDXSec = event.DiffXSec()*(1E+38/units::cm2);
+    brKPS   = event.DiffXSecVars();
 
     // Primary hadronic system (from primary neutrino interaction, before FSI)
     brNiP        = 0;
@@ -2537,10 +2552,10 @@ void ConvertToGHad(void)
 #ifdef __GHAD_NTP__
   TFile fout("ghad.root","recreate");  
   TTree * ghad = new TTree("ghad","");   
-  ghad->Branch("i",       &brIev,          "i/I " );
-  ghad->Branch("W",       &brW,            "W/D " );
-  ghad->Branch("n",       &brN,            "n/I " );
-  ghad->Branch("pdg",      brPdg,          "pdg[n]/I " );
+  ghad->Branch("i",       &brIev,          "i/I" );
+  ghad->Branch("W",       &brW,            "W/D" );
+  ghad->Branch("n",       &brN,            "n/I" );
+  ghad->Branch("pdg",      brPdg,          "pdg[n]/I" );
   ghad->Branch("E",        brE,            "E[n]/D"    );
   ghad->Branch("px",       brPx,           "px[n]/D"   );
   ghad->Branch("py",       brPy,           "py[n]/D"   );
@@ -2805,7 +2820,7 @@ TTree * tEvtTree = new TTree("ginuke","GENIE INuke Summary Tree");
   tEvtTree->Branch("probe_fsi", &brProbeFSI,     "probe_fsi/I" );
   tEvtTree->Branch("dist",      &brDist,         "dist/D"      );
   tEvtTree->Branch("nh",        &brNh,           "nh/I"        );
-  tEvtTree->Branch("pdgh",      brPdgh,          "pdgh[nh]/I " );
+  tEvtTree->Branch("pdgh",      brPdgh,          "pdgh[nh]/I" );
   tEvtTree->Branch("Eh",        brEh,            "Eh[nh]/D"    );
   tEvtTree->Branch("ph",        brPh,            "ph[nh]/D"    );
   tEvtTree->Branch("pxh",       brPxh,           "pxh[nh]/D"   );

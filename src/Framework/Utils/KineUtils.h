@@ -5,17 +5,16 @@
 
 \brief      Kinematical utilities
 
-\author     Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-            University of Liverpool & STFC Rutherford Appleton Lab
+\author     Costas Andreopoulos <constantinos.andreopoulos \at cern.ch>
+            University of Liverpool & STFC Rutherford Appleton Laboratory
 
             Changes required to implement the GENIE Boosted Dark Matter module
             were installed by Josh Berger (Univ. of Wisconsin)
 
 \created    November 26, 2004
 
-\cpright    Copyright (c) 2003-2019, The GENIE Collaboration
-            For the full text of the license visit http://copyright.genie-mc.org
-            or see $GENIE/LICENSE
+\cpright    Copyright (c) 2003-2020, The GENIE Collaboration
+            For the full text of the license visit http://copyright.genie-mc.org            
 */
 //____________________________________________________________________________
 
@@ -50,13 +49,14 @@ namespace kinematics
   Range1D_t  InelXLim    (double Ev, double M, double ml);
   Range1D_t  InelYLim    (double Ev, double M, double ml);
   Range1D_t  InelYLim_X  (double Ev, double M, double ml, double x);
-  Range1D_t  CohW2Lim    (double Mn, double mpi, double mlep, double Ev, double Q2);
+  Range1D_t  CohW2Lim    (double Mn, double m_produced, double mlep, double Ev, double Q2);
   Range1D_t  CohNuLim    (double W2min, double W2max, double Q2, double Mn, double xsi);
-  Range1D_t  CohYLim     (double Mn, double mpi, double mlep, double Ev, double Q2, double xsi);
+  Range1D_t  CohYLim     (double Mn, double m_produced, double mlep, double Ev, double Q2, double xsi);
   Range1D_t  CohYLim     (double EvL, double ml);
   Range1D_t  CohXLim     (void);
-  Range1D_t  CohQ2Lim    (double Mn, double mpi, double mlep, double Ev);
-  Range1D_t  Cohq2Lim    (double Mn, double mpi, double mlep, double Ev);
+  Range1D_t  CohQ2Lim    (double Mn, double m_produced, double mlep, double Ev);
+  Range1D_t  Cohq2Lim    (double Mn, double m_produced, double mlep, double Ev);
+  Range1D_t  CEvNSQ2Lim  (double Ev);
   Range1D_t  DarkWLim    (double Ev, double M, double ml);
   Range1D_t  DarkQ2Lim_W (double Ev, double M, double ml, double W, double Q2min_cut =    controls::kMinQ2Limit);
   Range1D_t  Darkq2Lim_W (double Ev, double M, double ml, double W, double q2min_cut = -1*controls::kMinQ2Limit);
@@ -67,19 +67,21 @@ namespace kinematics
   Range1D_t  DarkYLim_X  (double Ev, double M, double ml, double x);
 
   //-- helpers for kinematic limits
-  double CohW2Min(double Mn, double mpi);
+  double CohW2Min(double Mn, double m_produced);
 
   //-- kinematical variable transforms
   double QD2toQ2 (double QD2);
   double Q2toQD2 (double Q2);
   void   WQ2toXY (double Ev, double M, double W, double Q2, double & x, double & y);
   void   XYtoWQ2 (double Ev, double M, double & W, double & Q2, double x, double y);
+  void   XQ2toWY (double Ev, double M, double & W, double Q2, double x, double & y);
   double XYtoW   (double Ev, double M, double x, double y);
   double XYtoQ2  (double Ev, double M, double x, double y);
   double Q2YtoX  (double Ev, double M, double Q2, double y);
 
   void  UpdateWQ2FromXY(const Interaction * in);
   void  UpdateXYFromWQ2(const Interaction * in);
+  void  UpdateWYFromXQ2(const Interaction * in);
   void  UpdateXFromQ2Y(const Interaction * in);
 
   //-- methods used to apply cuts to kinematical limits
@@ -108,9 +110,6 @@ namespace kinematics
    Range1D_t  InelXLim    (double El, double ml, double M);
    Range1D_t  InelYLim    (double El, double ml, double M);
    Range1D_t  InelYLim_X  (double El, double ml, double M, double x);
-   void   WQ2toXY (double El, double ml, double M, double W, double Q2, double & x, double & y); // added mass of lepton as argument
-   void   XYtoWQ2 (double El, double ml, double M, double & W, double & Q2, double x, double y); // added mass of lepton as argument
-   double XYtoW   (double El, double ml, double M, double x, double y); // added mass of lepton as argument
 
    static const double kMinQ2Limit   = 0.02;  // GeV^2 // Q2 threshold relevant for em scattering events
   }
