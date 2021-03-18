@@ -457,7 +457,8 @@ double BSKLNBaseRESPXSec2014::XSec(
 
   if(is_EM) {
     double q4 = q2*q2;
-    g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
+    //    g2 = kAem2 * kPi2 / (2.0 * fSin48w * q4);
+    g2 = 4*kAem2 * kPi2 / q4;
   }
 
   if(is_CC) g2 = kGF2*fVud2;
