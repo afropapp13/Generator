@@ -145,7 +145,12 @@ void RadiativeCorrector::ProcessEventRecord(GHepRecord * evrec) const
 	//  e_gamma_max = init_state_ptr->ProbeE(kRfLab) - kine->FSLeptonP4().E();
 	//  if (e_gamma_max > kine->FSLeptonP4().E()) e_gamma_max = kine->FSLeptonP4().E();
         //}
-        e_gamma_max = 0.2*p4.E();
+
+	// Default hardcoded radiative limit
+        //e_gamma_max = 0.2*p4.E();
+	// Extremely high radiative limit
+        e_gamma_max = 0.95*p4.E();
+
         LOG("RadiativeCorrector", pDEBUG) << " particle for decay "<<p->Pdg()<<" e_gamma_max "<<e_gamma_max;
 	if (fModel == "vanderhagen") {
            if (e_gamma_max<0) e_gamma_max = 1E-10;
