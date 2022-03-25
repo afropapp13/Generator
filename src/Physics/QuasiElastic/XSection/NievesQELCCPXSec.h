@@ -14,7 +14,7 @@
 
 \created  April 2016
 
-\cpright  Copyright (c) 2003-2020, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2022, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org          
 */
 //____________________________________________________________________________
@@ -103,6 +103,9 @@ private:
   /// maximum radius for integration of the Coulomb potential
   /// when matching the VertexGenerator method
   double fR0;
+
+  /// Scaling factor for the Coulomb potential
+  double fCoulombScale;
 
   /// Enum variable describing which method of computing Rmax should be used
   /// for integrating the Coulomb potential
