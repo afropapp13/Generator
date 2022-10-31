@@ -130,7 +130,7 @@ int HG4BertCascIntranuke::G4BertCascade(GHepRecord * evrec) const{
     // Set up output and start the cascade
     G4CollisionOutput cascadeOutput;
     G4InuclCollider bertCollider;
-    bertCollider.useCascadeDeexcitation();
+    bertCollider.usePreCompoundDeexcitation();
     //collide
     bertCollider.collide(incident,theNucleus,cascadeOutput);
 
@@ -528,7 +528,7 @@ void HG4BertCascIntranuke::TransportHadrons(GHepRecord * evrec) const
     // Set up output and start the cascade
     G4CollisionOutput cascadeOutput;
     G4InuclCollider bertCollider;
-    bertCollider.useCascadeDeexcitation();
+    bertCollider.usePreCompoundDeexcitation();
     // bertCollider.setVerboseLevel(3);
     bertCollider.rescatter(incident, g4secondaries, g4Nucleus, cascadeOutput);
     delete incident;
