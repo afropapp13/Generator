@@ -1,7 +1,7 @@
 #
 # Make.include for GENIE Object-Oriented Neutrino Generator
 #
-# Costas Andreopoulos (Rutherford Lab.) <constantinos.andreopoulos \at cern.ch>
+# Costas Andreopoulos (Rutherford Lab.) <c.andreopoulos \at cern.ch>
 #
 
 #-------------------------------------------------------------------
@@ -177,7 +177,7 @@ INCL_INCLUDES  =
 ifeq ($(strip $(GOPT_ENABLE_INCL)),YES)
 
 INCL_INCLUDES  = -I$(GOPT_WITH_INCL_INC) -I$(GOPT_WITH_BOOST_INC)
-INCL_FLAGS     = $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --dflags )
+INCL_DFLAGS    = $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --dflags )
 INCL_LIBRARIES = -L$(GOPT_WITH_INCL_LIB)  $(shell $(GOPT_WITH_INCL_LIB)/../bin/inclxx-config --libs )
 
 BOOST_LIBRARIES = -L$(GOPT_WITH_BOOST_LIB) -lboost_program_options -lboost_timer -lboost_system -lboost_date_time
@@ -210,7 +210,6 @@ G4_IFLAGS_ONLY = $(filter     -I%,$(GEANT4_CFLAGS))
 
 # this might be -I/path/include/ or -I/path/include/Geant
 # really want the first
-#GEANT4_INCLUDES += -DG4_INC_START $(G4_IFLAGS_ONLY) -DG4_INC_END
 GEANT4_INCLUDES += $(G4_IFLAGS_ONLY)
 
 G4INCBASE = $(strip $(filter -I%include/Geant4,$(G4_IFLAGS_ONLY)))
@@ -235,6 +234,11 @@ endif
 # PYTHIA6
 #-------------------------------------------------------------------
 
+PYTHIA6_LIBRARIES =
+PY6ROOT_LIBRARY   =
+
+ifeq ($(strip $(GOPT_ENABLE_PYTHIA6)),YES)
+
 PYTHIA6_DIR = $(GOPT_WITH_PYTHIA6_LIB)
 PYTHIA6_O   = $(wildcard $(PYTHIA6_DIR)/pythia*.o) # match all vrs
 
@@ -242,6 +246,11 @@ PYTHIA6_LIBRARIES = -L$(PYTHIA6_DIR) -lPythia6 $(PYTHIA6_O)
 
 ifeq ($(strip $(ARCH)),macosx)
 PYTHIA6_LIBRARIES  = -L$(PYTHIA6_DIR) -lPythia6
+endif
+
+PY6ROOT_LIBRARY = -lEGPythia6
+else
+  $(info GOPT_ENABLE_PYTHIA6 is NO)
 endif
 
 #-------------------------------------------------------------------
@@ -257,13 +266,25 @@ PYTHIA8_LIBRARIES += -L$(GOPT_WITH_PYTHIA8_LIB) -lpythia8
 endif
 
 #-------------------------------------------------------------------
+# Professor2
+#-------------------------------------------------------------------
+
+PROFESSOR2_INCLUDES =
+PROFESSOR2_LIBRARIES =
+
+ifeq ($(strip $(GOPT_ENABLE_PROFESSOR2)),YES)
+PROFESSOR2_INCLUDES = -I$(GENIE)/src/ExternalLibs/professor/include
+PROFESSOR2_LIBRARIES = -L$(GENIE)/src/ExternalLibs/professor/lib -lProfessor2
+endif
+
+#-------------------------------------------------------------------
 # ROOT
 #-------------------------------------------------------------------
 # ROOT headers and libraries
 ROOT_FLAGS     = $(shell root-config --cflags)
 ROOT_INCLUDES  = -I$(shell root-config --incdir)
 ROOT_LIBRARIES = $(shell root-config --glibs) \
-                        -lMinuit -lGeom -lEG -lEGPythia6 -lGenVector -lMathMore
+                        -lMinuit -lGeom -lEG $(PY6ROOT_LIBRARY) -lGenVector -lMathMore
 ROOT_VERSION = $(shell root-config --version )
 ROOT_MAJOR   = $(shell root-config --version | cut -d. -f1 )
 
@@ -479,7 +500,7 @@ RANLIB       := ranlib
 SOCMD         = $(LD)
 OutPutOpt     = -o
 SOMINF        =
-EXTRALIBS     = -lnsl
+EXTRALIBS     =
 endif
 
 # LINUX / 64-bit x86 / with gcc
@@ -512,12 +533,12 @@ RANLIB       := ranlib
 SOCMD         = $(LD)
 OutPutOpt     = -o
 SOMINF        =
-EXTRALIBS     = -lnsl
+EXTRALIBS     =
 endif
 
 # LINUX / 64-bit arm / linuxarm64
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ifeq ($(strip $(ARCH)),linuxarm64) 
+ifeq ($(strip $(ARCH)),linuxarm64)
 ARCH_OK       = YES
 CXXFLAGS      = -W -Wall -fPIC -Wshadow \
     $(ROOT_FLAGS) \
@@ -545,7 +566,7 @@ RANLIB       := ranlib
 SOCMD         = $(LD)
 OutPutOpt     = -o
 SOMINF        =
-EXTRALIBS     = -lnsl
+EXTRALIBS     =
 endif
 
 #-------------------------------------------------------------------
@@ -562,7 +583,8 @@ CPP_INCLUDES := \
     $(LHAPDF_INCLUDES) \
     $(APFEL_INCLUDES) \
     $(GSL_INCLUDES) \
-    $(GENIE_INCLUDES)
+    $(GENIE_INCLUDES) \
+    $(PROFESSOR2_INCLUDES)
 
 ROOT_DICT_GEN_INCLUDES := \
     $(LINUX_SYS_INCLUDES) \
@@ -574,7 +596,6 @@ ROOT_DICT_GEN_INCLUDES := \
 LIBRARIES := $(SYSLIBS) \
              $(FORT_LIBRARIES) \
              $(ROOT_LIBRARIES) \
-             $(PYTHIA6_LIBRARIES) \
              $(LHAPDF_LIBRARIES) \
              $(APFEL_LIBRARIES) \
              $(XML_LIBRARIES) \

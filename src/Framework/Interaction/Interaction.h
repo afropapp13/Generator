@@ -8,15 +8,15 @@
           It is a container of an InitialState, a ProcessInfo, an XclsTag
           and a Kinematics object.
 
-\author   Costas Andreopoulos <constantinos.andreopoulos \at cern.ch>
-          University of Liverpool & STFC Rutherford Appleton Laboratory
+\author   Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
           Changes required to implement the GENIE Boosted Dark Matter module 
           were installed by Josh Berger (Univ. of Wisconsin)
 
 \created  April 25, 2004
 
-\cpright  Copyright (c) 2003-2022, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2024, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
@@ -156,7 +156,6 @@ public:
   static Interaction * GLR       (int tgt, const TLorentzVector & p4probe);
   static Interaction * NDecay    (int tgt, int decay_mode=-1, int decayed_nucleon = 0);
   static Interaction * NOsc      (int tgt, int annihilation_mode=-1);
-  static Interaction * NHL       (double E=0, int decayed_mode=-1);
   static Interaction * ASK       (int tgt, int probe, double E=0);
   static Interaction * ASK       (int tgt, int probe, const TLorentzVector & p4probe);
   static Interaction * DME       (int tgt, int nuc, int probe, double E=0);
@@ -165,6 +164,7 @@ public:
   static Interaction * DMDI      (int tgt, int nuc, int qrk, bool sea, int probe, double E=0);
   static Interaction * DMDI      (int tgt, int nuc, int probe, const TLorentzVector & p4probe);
   static Interaction * DMDI      (int tgt, int nuc, int qrk, bool sea, int probe, const TLorentzVector & p4probe);
+  static Interaction * HNL       (int probe, double E=0, int decayed_mode=-1);
 
 private:
 

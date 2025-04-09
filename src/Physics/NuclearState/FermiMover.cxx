@@ -1,11 +1,11 @@
 ///____________________________________________________________________________
 /*
- Copyright (c) 2003-2022, The GENIE Collaboration
+ Copyright (c) 2003-2024, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
  
 
- Costas Andreopoulos <constantinos.andreopoulos \at cern.ch>
- University of Liverpool & STFC Rutherford Appleton Laboratory - October 08, 2004
+ Costas Andreopoulos <c.andreopoulos \at cern.ch>
+ University of Liverpool - October 08, 2004
 
  For the class documentation see the corresponding header file.
 
@@ -144,8 +144,8 @@ void FermiMover::KickHitNucleon(GHepRecord * evrec) const
   double EN=0;
   FermiMoverInteractionType_t interaction_type = fNuclModel->GetFermiMoverInteractionType();
 
-  // EffectiveSF treatment
-  if (interaction_type == kFermiMoveEffectiveSF1p1h) {
+  // EffectiveSF treatment or momentum-dependent removal energy
+  if (interaction_type == kFermiMoveEffectiveSF1p1h || fMomDepErmv ) {
     EN = nucleon->Mass() - w - pF2 / (2 * (nucleus->Mass() - nucleon->Mass()));
   } else if (interaction_type == kFermiMoveEffectiveSF2p2h_eject ||
              interaction_type == kFermiMoveEffectiveSF2p2h_noeject) {
@@ -304,6 +304,13 @@ void FermiMover::LoadConfig(void)
   assert(fNuclModel);
 
   this->GetParamDef("KeepHitNuclOnMassShell", fKeepNuclOnMassShell, false);
+
+  bool mom_dep_energy_removal_def = false;
+  this->GetParamDef("LFG-MomentumDependentErmv", mom_dep_energy_removal_def, false ) ;
+  // it defaults to whatever the nuclear model sets. Since only the LFG has this option
+  // this simple search is enough.
+
+  this->GetParamDef("MomentumDependentErmv", fMomDepErmv, mom_dep_energy_removal_def);
 
   RgKey nuclearrecoilkey = "SecondNucleonEmitter" ;
   fSecondEmitter = dynamic_cast<const SecondNucleonEmissionI *> (this->SubAlg(nuclearrecoilkey));

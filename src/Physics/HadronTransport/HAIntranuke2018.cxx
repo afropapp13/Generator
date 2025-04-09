@@ -1,6 +1,6 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2022, The GENIE Collaboration
+ Copyright (c) 2003-2024, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
  
 
@@ -8,7 +8,7 @@
          Aaron Meyer <asm58@pitt.edu>, Pittsburgh Univ.
          Alex Bell, Pittsburgh Univ.
          Hugh Gallagher <gallag@minos.phy.tufts.edu>, Tufts Univ.
-         Costas Andreopoulos <constantinos.andreopoulos \at cern.ch>, Rutherford Lab.
+         Costas Andreopoulos <c.andreopoulos \at cern.ch>, Rutherford Lab.
          September 20, 2005
 
  For the class documentation see the corresponding header file.
@@ -862,7 +862,7 @@ void HAIntranuke2018::Inelastic(
                                t1code=kPdgNeutron; t2code=kPdgNeutron;
                                scode=kPdgProton;   s2code=kPdgNeutron;}
           }
-          if (pdgc==kPdgPiM) {
+          else if (pdgc==kPdgPiM) {
             double Prob_pimd_nn=2.*ppcnt*(1.-ppcnt);
             double Prob_pimpp_pn=.083*ppcnt*ppcnt;
             if (rnd->RndFsi().Rndm()*(Prob_pimd_nn+Prob_pimpp_pn)<Prob_pimd_nn){
@@ -876,10 +876,11 @@ void HAIntranuke2018::Inelastic(
             double Prob_pi0d_pn=0.88*ppcnt*(1.-ppcnt); // 2 * .44
             double Prob_pi0pp_pp=.14*ppcnt*ppcnt;
             double Prob_pi0nn_nn=.14*(1.-ppcnt)*(1.-ppcnt);
-            if (rnd->RndFsi().Rndm()*(Prob_pi0d_pn+Prob_pi0pp_pp+Prob_pi0nn_nn)<Prob_pi0d_pn){
+            double random_number = rnd->RndFsi().Rndm();
+            if (random_number*(Prob_pi0d_pn+Prob_pi0pp_pp+Prob_pi0nn_nn)<Prob_pi0d_pn){
                                t1code=kPdgNeutron;  t2code=kPdgProton;
                                 scode=kPdgNeutron;  s2code=kPdgProton;  }
-            else if (rnd->RndFsi().Rndm()*(Prob_pi0d_pn+Prob_pi0pp_pp+Prob_pi0nn_nn)<(Prob_pi0d_pn+Prob_pi0pp_pp)){
+            else if (random_number*(Prob_pi0d_pn+Prob_pi0pp_pp+Prob_pi0nn_nn)<(Prob_pi0d_pn+Prob_pi0pp_pp)){
                                t1code=kPdgProton;   t2code=kPdgProton;
                                scode=kPdgProton;    s2code=kPdgProton;  }
             else {
