@@ -11,8 +11,17 @@
 */
 //____________________________________________________________________________
 
+#include <TRandom.h>
 #include <TMath.h>
+
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
 #include <memory>
+
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 
@@ -47,6 +56,50 @@ using namespace genie;
 using namespace genie::utils;
 using namespace genie::constants;
 using namespace genie::controls;
+
+
+std::vector<double> stringToDoubleVector(const std::string& inputString) {
+    std::vector<double> result;
+    std::stringstream ss(inputString);
+    std::string token;
+
+    while (std::getline(ss, token, ' ')) {
+        try {
+            result.push_back(std::stod(token));
+        } catch (const std::invalid_argument& ia) {
+            std::cerr << "Invalid argument: " << ia.what() << " for token: " << token << std::endl;
+        } catch (const std::out_of_range& oor) {
+             std::cerr << "Out of range error: " << oor.what() << " for token: " << token << std::endl;
+        }
+    }
+    return result;
+}
+
+std::vector<std::string> splitBySpace(const std::string& input) {
+  std::stringstream ss(input);
+  std::string token;
+  std::vector<std::string> result;
+
+  while (ss >> token) {
+      result.push_back(token);
+  }
+
+  return result;
+}
+
+//___________________________________________________________________________
+
+std::vector<std::string> split (const std::string &s, char delim) {
+  std::vector<std::string> result;
+  std::stringstream ss (s);
+  std::string item;
+
+  while (getline (ss, item, delim)) {
+      result.push_back (item);
+  }
+
+  return result;
+}
 
 //___________________________________________________________________________
 MECGenerator::MECGenerator() :
@@ -334,12 +387,42 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   // The boost back to the lab frame was missing, that is included now with the introduction of the beta factor
   const InitialState & init_state = interaction->InitState();
   const TLorentzVector & pnuc4 = init_state.Tgt().HitNucP4(); //[@LAB]
+
   TVector3 beta = pnuc4.BoostVector();
 
   // Boosting the incoming neutrino to the NN-cluster rest frame
   // Neutrino 4p
   // TLorentzVector * p4v = event->Probe()->GetP4(); // v 4p @ LAB
   auto p4v = std::unique_ptr<TLorentzVector>(event->Probe()->GetP4());
+
+  //--------------------------//
+
+  // apapadop, we need to replace the lepton here
+  std::ifstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p00_2_an1_jtot_formatted.out");
+  int nlines = 700036;
+  int group = 7; // blocks of 7
+  int blocks = (nlines - 1)/group;
+  int offset = 2; // outgoing lepton is the 2nd entry in each block
+  TRandom rand;
+  int random = rand.Uniform(0,blocks+1);
+  int line_number = offset + random * group + 1; // +1 bc the first entry is the total xsec
+  std::string s;
+  for (int i = 1; i <= line_number; i++) { 
+    
+    std::getline(inFile, s); 
+    //std::cout << s  << std::endl; 
+  
+  }
+
+  //std::cout << "hello random = " << random << " line_number = " << line_number << "  " << s << std::endl; 
+  std::vector<std::string> words = split(s, ' ');
+  //std::cout << words.size() << std::endl;
+  //std::cout << words.at(1) << std::endl;
+
+  p4v->SetPxPyPzE(std::stod(words[1])/1e3,std::stod(words[2])/1e3,std::stod(words[3])/1e3, std::stod(words[0])/1e3); // GeV
+
+  //--------------------------//
+
   p4v->Boost(-1.*beta);                           // v 4p @ NN-cluster rest frame
 
   // Look-up selected kinematics
