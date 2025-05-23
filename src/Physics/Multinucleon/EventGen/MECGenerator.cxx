@@ -552,12 +552,72 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
 // Perform a phase-space decay of the nucleon cluster and add its decay
 // products in the event record
 //
-  LOG("MEC", pINFO) << "Decaying nucleon cluster...";
 
   // get di-nucleon cluster
   int nucleon_cluster_id = 5;
   GHepParticle * nucleon_cluster = event->Particle(nucleon_cluster_id);
   assert(nucleon_cluster);
+
+  TLorentzVector * p4d = nucleon_cluster->GetP4();
+  TLorentzVector * v4d = nucleon_cluster->GetX4();
+  // Insert the decay products in the event record
+  TLorentzVector v4(*v4d);
+  GHepStatus_t ist = kIStHadronInTheNucleus;
+  int idp = 0;
+
+  //---------------//
+
+  //apapadop
+  // get final state primary lepton & its 4-momentum
+  GHepParticle * fsl = event->FinalStatePrimaryLepton();
+  assert(fsl);
+  TLorentzVector p4l(*fsl->P4());
+
+  // get the lepton energy & find the relevant line
+  double nue = p4l.E();
+  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p00_2_an1_jtot_formatted.out");
+  std::string s;
+  int line_electron = 1;
+    
+  while ( std::getline(inFile, s) ) {
+    std::vector<std::string> words = split(s, ' ');
+    if ( (std::stod(words[0])/1e3) == nue) { break; }
+    else { line_electron++; }
+  }
+
+  //---------------//
+
+  // 1st nucleon
+  std::string s_p1;
+  GotoLine(inFile,line_electron+2);
+  std::getline(inFile, s_p1); 
+  std::vector<std::string> words_p1 = split(s_p1, ' ');
+  int pdgc_p1 = std::stoi(words_p1[4]);
+  TLorentzVector p4fin_p1(-1,-1,-1,-1);
+  p4fin_p1.SetPxPyPzE(std::stod(words_p1[1])/1e3, std::stod(words_p1[2])/1e3 , std::stod(words_p1[3])/1e3, std::stod(words_p1[0])/1e3);
+  event->AddParticle(pdgc_p1, ist, nucleon_cluster_id,-1,-1,-1, p4fin_p1, v4);
+
+  //---------------//
+
+  // 2nd nucleon
+
+  std::string s_p2;
+  GotoLine(inFile,line_electron+4);
+  std::getline(inFile, s_p2); 
+  std::vector<std::string> words_p2 = split(s_p2, ' ');
+  int pdgc_p2 = std::stoi(words_p2[4]);
+  TLorentzVector p4fin_p2(-1,-1,-1,-1);
+  p4fin_p2.SetPxPyPzE(std::stod(words_p2[1])/1e3, std::stod(words_p2[2])/1e3 , std::stod(words_p2[3])/1e3, std::stod(words_p2[0])/1e3);
+  event->AddParticle(pdgc_p2, ist, nucleon_cluster_id,-1,-1,-1, p4fin_p2, v4);
+
+  //---------------//
+
+  /*TLorentzVector cluster = p4fin_p1 + p4fin_p2;
+  p4d = (&cluster);
+
+  //---------------//
+
+  LOG("MEC", pINFO) << "Decaying nucleon cluster...";
 
   // get decay products
   PDGCodeList pdgv = this->NucleonClusterConstituents(nucleon_cluster->Pdg());
@@ -578,9 +638,6 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   LOG("MEC", pINFO)
     << "Performing a phase space decay to "
     << pdgv.size() << " particles / total mass = " << sum;
-
-  TLorentzVector * p4d = nucleon_cluster->GetP4();
-  TLorentzVector * v4d = nucleon_cluster->GetX4();
 
   LOG("MEC", pINFO)
     << "Decaying system p4 = " << utils::print::P4AsString(p4d);
@@ -655,82 +712,21 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
 
   } //!accept_decay
 
-  // Insert the decay products in the event record
-  TLorentzVector v4(*v4d);
-  GHepStatus_t ist = kIStHadronInTheNucleus;
-  int idp = 0;
+  // for(pdg_iter = pdgv.begin(); pdg_iter != pdgv.end(); ++pdg_iter) {
+  //   int pdgc = *pdg_iter;
+  //   TLorentzVector * p4fin = fPhaseSpaceGenerator.GetDecay(idp);
+  //   event->AddParticle(pdgc, ist, nucleon_cluster_id,-1,-1,-1, *p4fin, v4);
+  //   idp++;
+  // }
 
-  for(pdg_iter = pdgv.begin(); pdg_iter != pdgv.end(); ++pdg_iter) {
-    int pdgc = *pdg_iter;
-    TLorentzVector * p4fin = fPhaseSpaceGenerator.GetDecay(idp);
-    event->AddParticle(pdgc, ist, nucleon_cluster_id,-1,-1,-1, *p4fin, v4);
-    idp++;
-  }
-
-  //apapadop
-  // get final state primary lepton & its 4-momentum
-  GHepParticle * fsl = event->FinalStatePrimaryLepton();
-  assert(fsl);
-  TLorentzVector p4l(*fsl->P4());
-
-  // get the lepton energy
-  double nue = p4l.E();
-
-  std::ifstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p00_2_an1_jtot_formatted.out");
-
-  std::string s;
-  int line_electron = 1;
-    
-  while ( std::getline(inFile, s) ) {
-
-    std::vector<std::string> words = split(s, ' ');
-    if ( (std::stod(words[0])/1e3) == nue) { break; }
-    else { line_electron++; }
-
-  }
-
-  //---------------//
-
-  // 1st nucleon
-  /*std::string s_p1;
-  for (int i = 1; i <= line_electron+2; i++) { 
-    
-    std::getline(inFile, s_p1); 
-  
-  }
-
-  std::vector<std::string> words_p1 = split(s_p1, ' ');
-  int pdgc_p1 = std::stoi(words_p1[4]);
-  TLorentzVector p4fin_p1(-1,-1,-1,-1);
-  p4fin_p1.SetPxPyPzE(std::stod(words_p1[1])/1e3, std::stod(words_p1[2])/1e3 , std::stod(words_p1[3])/1e3, std::stod(words_p1[0])/1e3);
-  event->AddParticle(pdgc_p1, ist, nucleon_cluster_id,-1,-1,-1, p4fin_p1, v4);
-
-  //---------------//
-
-  // 2nd nucleon
-
-  std::string s_p2;
-  for (int i = 1; i <= line_electron+4; i++) { 
-    
-    std::getline(inFile, s_p2); 
-  
-  }
-
-  std::vector<std::string> words_p2 = split(s_p2, ' ');  
-  int pdgc_p2 = std::stoi(words_p2[4]);
-  TLorentzVector p4fin_p2(-1,-1,-1,-1);
-  p4fin_p2.SetPxPyPzE(std::stod(words_p2[1])/1e3, std::stod(words_p2[2])/1e3 , std::stod(words_p2[3])/1e3, std::stod(words_p2[0])/1e3);
-  event->AddParticle(pdgc_p2, ist, nucleon_cluster_id,-1,-1,-1, p4fin_p2, v4);
-
-  //---------------//
 
   // Clean-up
 
-  inFile.close();*/
-
-  delete [] mass;
+  delete [] mass;*/
   delete p4d;
   delete v4d;
+
+  inFile.close();  
 
 }
 //___________________________________________________________________________
