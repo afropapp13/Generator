@@ -458,7 +458,7 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   //--------------------------//
 
   // apapadop, we need to replace the lepton and probe here
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p00_2_an1_jtot_formatted.out");
+  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
   int nlines = 700036;
   int group = 7; // blocks of 7
   int blocks = (nlines - 1)/group;
@@ -558,12 +558,12 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   GHepParticle * nucleon_cluster = event->Particle(nucleon_cluster_id);
   assert(nucleon_cluster);
 
-  TLorentzVector * p4d = nucleon_cluster->GetP4();
+  /*TLorentzVector * p4d = nucleon_cluster->GetP4();*/
   TLorentzVector * v4d = nucleon_cluster->GetX4();
   // Insert the decay products in the event record
   TLorentzVector v4(*v4d);
   GHepStatus_t ist = kIStHadronInTheNucleus;
-  int idp = 0;
+  /*int idp = 0;*/
 
   //---------------//
 
@@ -575,7 +575,7 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
 
   // get the lepton energy & find the relevant line
   double nue = p4l.E();
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p00_2_an1_jtot_formatted.out");
+  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
   std::string s;
   int line_electron = 1;
     
@@ -722,8 +722,8 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
 
   // Clean-up
 
-  delete [] mass;*/
-  delete p4d;
+  delete [] mass;
+  delete p4d;*/
   delete v4d;
 
   inFile.close();  
