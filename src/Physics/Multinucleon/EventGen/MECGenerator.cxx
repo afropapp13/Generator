@@ -458,8 +458,11 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   //--------------------------//
 
   // apapadop, we need to replace the lepton and probe here
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
-  int nlines = 700036;
+  //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
+  //int nlines = 700036;
+  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+  int nlines = 700001;
+
   int group = 7; // blocks of 7
   int blocks = (nlines - 1)/group;
   int offset = 2; // outgoing lepton is the 2nd entry in each block
@@ -469,25 +472,12 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   // outgoing lepton
   int line_number = offset + random * group + 1; // +1 bc the first entry is the total xsec
   std::string s;
+  inFile.seekg(std::ios::beg);
   GotoLine(inFile,line_number);
   std::getline(inFile, s); 
+
   std::vector<std::string> words = split(s, ' ');
   p4l.SetPxPyPzE(std::stod(words[1])/1e3,std::stod(words[2])/1e3,std::stod(words[3])/1e3, std::stod(words[0])/1e3); // GeV
-
-  // incoming lepton
-  int v_line_number = (offset-1) + random * group + 1; // +1 bc the first entry is the total xsec
-  std::string v_s;
-  GotoLine(inFile,v_line_number);  
-  std::getline(inFile, v_s);  
-  std::vector<std::string> v_words = split(v_s, ' ');
-  
-  TLorentzVector v_p4v(std::stod(v_words[1])/1e3,std::stod(v_words[2])/1e3,std::stod(v_words[3])/1e3, std::stod(v_words[0])/1e3); // GeV  
-  // update the interaction summary & the probe
-  interaction->InitStatePtr()->SetProbeP4(v_p4v);
-
-  // std::cout << "v_line_number = " << v_line_number << std::endl;
-  // std::cout << "incoming (Px,Py,Pz,E) = " << v_p4v.Px() << " " << v_p4v.Py() << " " << v_p4v.Pz() << " " << v_p4v.E() << std::endl;
-  // std::cout << "outgoing (Px,Py,Pz,E) = " << p4l.Px() << " " << p4l.Py() << " " << p4l.Pz() << " " << p4l.E() << std::endl;   
 
   inFile.close();
 
@@ -574,14 +564,17 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   TLorentzVector p4l(*fsl->P4());
 
   // get the lepton energy & find the relevant line
-  double nue = p4l.E();
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
+  double e = p4l.E();
+  double px = p4l.Px();  
+  //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
+  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+
   std::string s;
   int line_electron = 1;
     
   while ( std::getline(inFile, s) ) {
     std::vector<std::string> words = split(s, ' ');
-    if ( (std::stod(words[0])/1e3) == nue) { break; }
+    if ( (std::stod(words[0])/1e3) == e && (std::stod(words[1])/1e3) == px) { break; }
     else { line_electron++; }
   }
 
@@ -591,7 +584,9 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   std::string s_p1;
   GotoLine(inFile,line_electron+2);
   std::getline(inFile, s_p1); 
+std::cout << "s_p1 = " << s_p1 << std::endl;
   std::vector<std::string> words_p1 = split(s_p1, ' ');
+std::cout << "std::stoi(words_p1[4]) = " << std::stoi(words_p1[4]) << std::endl;
   int pdgc_p1 = std::stoi(words_p1[4]);
   TLorentzVector p4fin_p1(-1,-1,-1,-1);
   p4fin_p1.SetPxPyPzE(std::stod(words_p1[1])/1e3, std::stod(words_p1[2])/1e3 , std::stod(words_p1[3])/1e3, std::stod(words_p1[0])/1e3);
@@ -604,7 +599,9 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   std::string s_p2;
   GotoLine(inFile,line_electron+4);
   std::getline(inFile, s_p2); 
+std::cout << "s_p2 = " << s_p2 << std::endl;
   std::vector<std::string> words_p2 = split(s_p2, ' ');
+std::cout << "std::stoi(words_p2[4]) = " << std::stoi(words_p2[4]) << std::endl;  
   int pdgc_p2 = std::stoi(words_p2[4]);
   TLorentzVector p4fin_p2(-1,-1,-1,-1);
   p4fin_p2.SetPxPyPzE(std::stod(words_p2[1])/1e3, std::stod(words_p2[2])/1e3 , std::stod(words_p2[3])/1e3, std::stod(words_p2[0])/1e3);
@@ -612,12 +609,7 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
 
   //---------------//
 
-  /*TLorentzVector cluster = p4fin_p1 + p4fin_p2;
-  p4d = (&cluster);
-
-  //---------------//
-
-  LOG("MEC", pINFO) << "Decaying nucleon cluster...";
+  /*LOG("MEC", pINFO) << "Decaying nucleon cluster...";
 
   // get decay products
   PDGCodeList pdgv = this->NucleonClusterConstituents(nucleon_cluster->Pdg());
