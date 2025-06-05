@@ -464,13 +464,14 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   int nlines = 700001;
 
   int group = 7; // blocks of 7
-  int blocks = (nlines - 1)/group;
+  int blocks = (nlines - 1)/group; // -1 bc the 1st line is the total xsec
   int offset = 2; // outgoing lepton is the 2nd entry in each block
   TRandom rand(0);
-  int random = rand.Uniform(0,blocks+1);
+  int random = rand.Uniform(0,blocks);
 
   // outgoing lepton
   int line_number = offset + random * group + 1; // +1 bc the first entry is the total xsec
+std::cout << "line_number = " << line_number << std::endl;
   std::string s;
   inFile.seekg(std::ios::beg);
   GotoLine(inFile,line_number);
@@ -478,6 +479,8 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
 
   std::vector<std::string> words = split(s, ' ');
   p4l.SetPxPyPzE(std::stod(words[1])/1e3,std::stod(words[2])/1e3,std::stod(words[3])/1e3, std::stod(words[0])/1e3); // GeV
+std::cout << "s_lep = " << s << std::endl;
+std::cout << "std::stoi(words[0]) = " << std::stoi(words[0]) << std::endl;
 
   inFile.close();
 
@@ -577,7 +580,7 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
     if ( (std::stod(words[0])/1e3) == e && (std::stod(words[1])/1e3) == px) { break; }
     else { line_electron++; }
   }
-
+std::cout << "line_electron = " << line_electron << std::endl;
   //---------------//
 
   // 1st nucleon
