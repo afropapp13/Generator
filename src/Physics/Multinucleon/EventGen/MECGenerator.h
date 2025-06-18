@@ -23,6 +23,7 @@
 
 #include <TGenPhaseSpace.h>
 #include "Framework/Utils/Range1.h"
+#include <fstream>
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
 #include "Framework/ParticleData/PDGCodeList.h"
@@ -70,6 +71,14 @@ private:
   mutable const XSecAlgorithmI * fXSecModel;
   mutable TGenPhaseSpace         fPhaseSpaceGenerator;
   const NuclearModelI *          fNuclModel;
+
+
+  mutable std::ifstream* inFile = nullptr;
+  mutable std::vector<int> block_indices;
+  mutable int nlines,group,blocks,offset;
+  mutable int block_idx;
+  mutable int current_block;
+  mutable int line_number;
 
   double fSafetyFactor ; 
   int fFunctionCalls ; 

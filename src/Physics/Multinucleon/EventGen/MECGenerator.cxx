@@ -20,8 +20,12 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <random>
+#include <numeric>
+#include <algorithm>
 #include <memory>
 #include <fstream>
+#include <istream>
 #include <limits>
 
 #include "Math/Minimizer.h"
@@ -61,7 +65,7 @@ using namespace genie::controls;
 
 //---------------------------//
 
-std::fstream& GotoLine(std::fstream& file, unsigned int num){
+std::istream& GotoLine(std::istream& file, unsigned int num){
 
     file.seekg(std::ios::beg);
 
@@ -135,7 +139,11 @@ EventRecordVisitorI("genie::MECGenerator", config)
 //___________________________________________________________________________
 MECGenerator::~MECGenerator()
 {
-
+  if (inFile) {
+            inFile->close();
+            delete inFile;
+            inFile = nullptr;
+        }
 }
 //___________________________________________________________________________
 void MECGenerator::ProcessEventRecord(GHepRecord * event) const
@@ -460,29 +468,41 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
   // apapadop, we need to replace the lepton and probe here
   //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
   //int nlines = 700036;
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
-  int nlines = 700001;
+  //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+  if(!inFile) {
+    inFile = new std::ifstream("/exp/genie/app/users/nsteinbe/CC2p/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+    
+    //inFile.open("/exp/genie/app/users/nsteinbe/CC2p/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+    
+    nlines = 700001;
+    group = 7; // blocks of 7
+    blocks = (nlines - 1)/group; // -1 bc the 1st line is the total xsec
+    offset = 2; // outgoing lepton is the 2nd entry in each block
 
-  int group = 7; // blocks of 7
-  int blocks = (nlines - 1)/group; // -1 bc the 1st line is the total xsec
-  int offset = 2; // outgoing lepton is the 2nd entry in each block
-  TRandom rand(0);
-  int random = rand.Uniform(0,blocks);
+    block_indices.resize(blocks);
+    std::iota(block_indices.begin(), block_indices.end(),0);
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(block_indices.begin(), block_indices.end(), g);
+  }
+
+  current_block = block_indices[block_idx];
 
   // outgoing lepton
-  int line_number = offset + random * group + 1; // +1 bc the first entry is the total xsec
-std::cout << "line_number = " << line_number << std::endl;
+  line_number = offset + current_block * group + 1; // +1 bc the first entry is the total xsec
+  std::cout << "line_number = " << line_number << std::endl;
   std::string s;
-  inFile.seekg(std::ios::beg);
-  GotoLine(inFile,line_number);
-  std::getline(inFile, s); 
+  inFile->seekg(std::ios::beg);
+  GotoLine(*inFile,line_number);
+  std::getline(*inFile, s); 
 
   std::vector<std::string> words = split(s, ' ');
   p4l.SetPxPyPzE(std::stod(words[1])/1e3,std::stod(words[2])/1e3,std::stod(words[3])/1e3, std::stod(words[0])/1e3); // GeV
 std::cout << "s_lep = " << s << std::endl;
 std::cout << "std::stoi(words[0]) = " << std::stoi(words[0]) << std::endl;
 
-  inFile.close();
+  //inFile.close();
 
   //--------------------------//
 
@@ -499,6 +519,7 @@ std::cout << "std::stoi(words[0]) = " << std::stoi(words[0]) << std::endl;
 
   // Set its polarization
   utils::SetPrimaryLeptonPolarization( event );
+  block_idx++;
 }
 //___________________________________________________________________________
 void MECGenerator::RecoilNucleonCluster(GHepRecord * event) const
@@ -570,23 +591,18 @@ void MECGenerator::DecayNucleonCluster(GHepRecord * event) const
   double e = p4l.E();
   double px = p4l.Px();  
   //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_fsi/Generator/src/Physics/Multinucleon/EventGen/test_FG_961_37p50.out");
-  std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
-
+  //std::fstream inFile("/exp/uboone/app/users/apapadop/cc2p_e4v/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
+  //std::fstream inFile("/exp/genie/app/users/nsteinbe/CC2p/Generator/src/Physics/Multinucleon/EventGen/test_FG_1159_q2min_0p1GeV2.out");
   std::string s;
-  int line_electron = 1;
-    
-  while ( std::getline(inFile, s) ) {
-    std::vector<std::string> words = split(s, ' ');
-    if ( (std::stod(words[0])/1e3) == e && (std::stod(words[1])/1e3) == px) { break; }
-    else { line_electron++; }
-  }
+
+  int line_electron=line_number;
 std::cout << "line_electron = " << line_electron << std::endl;
   //---------------//
 
   // 1st nucleon
   std::string s_p1;
-  GotoLine(inFile,line_electron+2);
-  std::getline(inFile, s_p1); 
+  GotoLine(*inFile,line_electron+2);
+  std::getline(*inFile, s_p1); 
 std::cout << "s_p1 = " << s_p1 << std::endl;
   std::vector<std::string> words_p1 = split(s_p1, ' ');
 std::cout << "std::stoi(words_p1[4]) = " << std::stoi(words_p1[4]) << std::endl;
@@ -600,8 +616,8 @@ std::cout << "std::stoi(words_p1[4]) = " << std::stoi(words_p1[4]) << std::endl;
   // 2nd nucleon
 
   std::string s_p2;
-  GotoLine(inFile,line_electron+4);
-  std::getline(inFile, s_p2); 
+  GotoLine(*inFile,line_electron+4);
+  std::getline(*inFile, s_p2); 
 std::cout << "s_p2 = " << s_p2 << std::endl;
   std::vector<std::string> words_p2 = split(s_p2, ' ');
 std::cout << "std::stoi(words_p2[4]) = " << std::stoi(words_p2[4]) << std::endl;  
@@ -721,7 +737,7 @@ std::cout << "std::stoi(words_p2[4]) = " << std::stoi(words_p2[4]) << std::endl;
   delete p4d;*/
   delete v4d;
 
-  inFile.close();  
+  //inFile.close();  
 
 }
 //___________________________________________________________________________
