@@ -472,8 +472,14 @@ void MECGenerator::AddFinalStateLepton(GHepRecord * event) const
     string base_dir = string( gSystem->Getenv("GENIE") );
     base_dir += string("/src/Physics/Multinucleon/EventGen/") ;
  
-    inFile = new std::ifstream(base_dir + "test_FG_1159_q2min_0p1GeV2.out");   
-    nlines = 700001;
+    // inFile = new std::ifstream(base_dir + "test_FG_1159_q2min_0p1GeV2.out");   
+    // nlines = 700001;
+
+    inFile = new std::ifstream(base_dir + "2p2h_EW_SF_T2K.out");   
+    nlines = 1750001; 
+    
+    // inFile = new std::ifstream(base_dir + "2p2h_EW_SF_Icarus.out");   
+    // nlines = 1750001;     
 
     //inFile = new std::ifstream(base_dir + "test_FG_961_37p50.out");   
     //nlines = 700050;    
